@@ -47,6 +47,5 @@ and the same async task flow as the other KIE image nodes.
 
 ## Notes
 
-- Images are uploaded via KIE upload endpoint and sent as URL list in `image_input`.
-- If more than 14 images are provided, only the first 14 are used.
 - Credits are consumed per request.
+- If no images are connected, `image_input` is omitted from the API payload.

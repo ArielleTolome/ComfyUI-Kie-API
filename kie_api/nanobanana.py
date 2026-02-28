@@ -176,18 +176,19 @@ def run_nanobanana_image_job(
                         _log(log, f"Image {idx + 1} upload failed: {exc}")
                         raise
 
+            input_payload = {
+                "prompt": prompt,
+                "aspect_ratio": aspect_ratio,
+                "resolution": resolution,
+                "output_format": output_format,
+            }
+            if image_urls:
+                input_payload["image_input"] = image_urls
+
             payload = {
                 "model": MODEL_NAME,
-                "input": {
-                    "prompt": prompt,
-                    "aspect_ratio": aspect_ratio,
-                    "resolution": resolution,
-                    "output_format": output_format,
-                    "image_input": image_urls,
-                },
+                "input": input_payload,
             }
-
-            _log(log, f"Sending {len(image_urls)} image URLs to createTask")
 
             _log(log, "Creating Nano Banana Pro task...")
             task_id, create_response_text = _create_nano_banana_task(api_key, payload)

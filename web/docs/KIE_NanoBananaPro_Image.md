@@ -2,8 +2,8 @@
 
 Generate high-quality images using KIE’s Nano Banana Pro model.
 
-This node supports optional reference images and exposes all major
-generation controls directly in ComfyUI.
+This node supports optional reference images and exposes major generation
+controls directly in ComfyUI.
 
 ---
 
@@ -44,9 +44,9 @@ generation controls directly in ComfyUI.
 
 ## Notes
 
-- Images are uploaded temporarily to KIE servers.
 - Credits are consumed per request.
 - If the API is under heavy load, generation may take longer.
+- If no images are connected, `image_input` is omitted from the API payload.
 
 ## Debugging
 You can always visit https://kie.ai/logs to see the progress, why something may of failed. If their is a timeout you can usually see your final image/video here as well

@@ -69,12 +69,10 @@ def run_nanobanana2_image_job(
         raise RuntimeError("google_search must be a boolean.")
     if images is not None:
         images = _validate_image_tensor_batch(images)
-
     payload = {
         "model": MODEL_NAME,
         "input": {
             "prompt": prompt,
-            "image_input": [],
             "aspect_ratio": aspect_ratio,
             "google_search": google_search,
             "resolution": resolution,
@@ -99,21 +97,22 @@ def run_nanobanana2_image_job(
                         log,
                         f"More than {MAX_IMAGE_COUNT} images provided ({total_images}); only first {MAX_IMAGE_COUNT} used.",
                     )
-
                 upload_count = min(total_images, MAX_IMAGE_COUNT)
                 if upload_count > 0:
                     _log(log, f"Uploading {upload_count} image(s)...")
-
                 for idx in range(upload_count):
                     png_bytes = _image_tensor_to_png_bytes(images[idx])
                     image_url = _upload_image(api_key, png_bytes)
                     image_urls.append(image_url)
                     _log(log, f"Image {idx + 1} upload success: {_truncate_url(image_url)}")
 
-            payload["input"]["image_input"] = image_urls
-            _log(log, f"Sending {len(image_urls)} image URL(s) to createTask")
+            input_payload = dict(payload["input"])
+            if image_urls:
+                input_payload["image_input"] = image_urls
+            payload_to_send = {"model": MODEL_NAME, "input": input_payload}
+
             _log(log, "Creating Nano Banana 2 task...")
-            task_id, create_response_text = _create_task(api_key, payload)
+            task_id, create_response_text = _create_task(api_key, payload_to_send)
             _log(log, f"createTask response (elapsed={time.time() - start_time:.1f}s): {create_response_text}")
             _log(log, f"Task created with ID {task_id}. Polling for completion...")
 
