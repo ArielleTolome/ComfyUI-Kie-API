@@ -72,6 +72,16 @@ from .kie_api.flux2_i2i import (
     RESOLUTION_OPTIONS as FLUX2_RESOLUTION_OPTIONS,
     run_flux2_i2i,
 )
+from .kie_api.sora2_t2v import (
+    ASPECT_RATIO_OPTIONS as SORA2_ASPECT_RATIO_OPTIONS,
+    DURATION_OPTIONS as SORA2_DURATION_OPTIONS,
+    MODEL_OPTIONS as SORA2_T2V_MODEL_OPTIONS,
+    run_sora2_t2v_video,
+)
+from .kie_api.sora2_i2v import (
+    MODEL_OPTIONS as SORA2_I2V_MODEL_OPTIONS,
+    run_sora2_i2v_video,
+)
 from .kie_api.prompt_lists import parse_prompts_json
 from .kie_api.grid import slice_grid_tensor
 from .kie_api.http import TransientKieError
@@ -1641,6 +1651,154 @@ Outputs:
         return (combined,)
 
 
+class KIE_Sora2_T2V:
+    HELP = """
+KIE Sora 2 (T2V)
+
+Generate a video from a text prompt using OpenAI Sora 2 via KIE API.
+
+Inputs:
+- prompt: Text prompt describing the desired video (required, up to 10000 chars)
+- model: sora-2-text-to-video or sora-2-text-to-video-stable
+- aspect_ratio: landscape or portrait
+- n_frames: Duration in seconds (10 or 15)
+- remove_watermark: Remove watermark from output
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "model": ("COMBO", {"options": SORA2_T2V_MODEL_OPTIONS, "default": "sora-2-text-to-video"}),
+                "aspect_ratio": ("COMBO", {"options": SORA2_ASPECT_RATIO_OPTIONS, "default": "landscape"}),
+                "n_frames": ("COMBO", {"options": SORA2_DURATION_OPTIONS, "default": "10"}),
+                "remove_watermark": ("BOOLEAN", {"default": False}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str,
+        model: str = "sora-2-text-to-video",
+        aspect_ratio: str = "landscape",
+        n_frames: str = "10",
+        remove_watermark: bool = False,
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 5.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_sora2_t2v_video(
+                    prompt=prompt,
+                    model=model,
+                    aspect_ratio=aspect_ratio,
+                    n_frames=n_frames,
+                    remove_watermark=remove_watermark,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if attempt >= attempts:
+                    raise
+                _log(log, f"Transient error on attempt {attempt}/{attempts}. Retrying in {retry_backoff_s}s...")
+                time.sleep(retry_backoff_s)
+
+
+class KIE_Sora2_I2V:
+    HELP = """
+KIE Sora 2 (I2V)
+
+Generate a video from an image and text prompt using OpenAI Sora 2 via KIE API.
+
+Inputs:
+- images: Source image batch (first image used as first frame)
+- prompt: Text prompt describing the desired video motion (required, up to 10000 chars)
+- model: sora-2-image-to-video or sora-2-image-to-video-stable
+- aspect_ratio: landscape or portrait
+- n_frames: Duration in seconds (10 or 15)
+- remove_watermark: Remove watermark from output
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "images": ("IMAGE",),
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "model": ("COMBO", {"options": SORA2_I2V_MODEL_OPTIONS, "default": "sora-2-image-to-video"}),
+                "aspect_ratio": ("COMBO", {"options": SORA2_ASPECT_RATIO_OPTIONS, "default": "landscape"}),
+                "n_frames": ("COMBO", {"options": SORA2_DURATION_OPTIONS, "default": "10"}),
+                "remove_watermark": ("BOOLEAN", {"default": False}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        images: torch.Tensor,
+        prompt: str,
+        model: str = "sora-2-image-to-video",
+        aspect_ratio: str = "landscape",
+        n_frames: str = "10",
+        remove_watermark: bool = False,
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 5.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_sora2_i2v_video(
+                    prompt=prompt,
+                    images=images,
+                    model=model,
+                    aspect_ratio=aspect_ratio,
+                    n_frames=n_frames,
+                    remove_watermark=remove_watermark,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if attempt >= attempts:
+                    raise
+                _log(log, f"Transient error on attempt {attempt}/{attempts}. Retrying in {retry_backoff_s}s...")
+                time.sleep(retry_backoff_s)
+
+
 NODE_CLASS_MAPPINGS = {
     "KIE_GetRemainingCredits": KIE_GetRemainingCredits,
     "KIE_NanoBananaPro_Image": KIE_NanoBananaPro_Image,
@@ -1661,6 +1819,8 @@ NODE_CLASS_MAPPINGS = {
     "KIE_Gemini3Pro_LLM": KIE_Gemini3Pro_LLM,
     "KIE_Suno_Music_Basic": KIE_Suno_Music_Basic,
     "KIE_Suno_Music_Advanced": KIE_Suno_Music_Advanced,
+    "KIE_Sora2_T2V": KIE_Sora2_T2V,
+    "KIE_Sora2_I2V": KIE_Sora2_I2V,
     "KIE_GridSlice": KIE_GridSlice,
     "KIEParsePromptGridJSON": KIEParsePromptGridJSON,
     "KIE_SystemPrompt_Selector": KIE_SystemPrompt_Selector,
@@ -1685,6 +1845,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KIE_Gemini3Pro_LLM": "KIE Gemini (LLM) [Experimental]",
     "KIE_Suno_Music_Basic": "KIE Suno Music (Basic)",
     "KIE_Suno_Music_Advanced": "KIE Suno Music (Advanced)",
+    "KIE_Sora2_T2V": "KIE Sora 2 (T2V)",
+    "KIE_Sora2_I2V": "KIE Sora 2 (I2V)",
     "KIE_GridSlice": "KIE Grid Slice",
     "KIEParsePromptGridJSON": "KIE Parse Prompt Grid JSON (1..9)",
     "KIE_SystemPrompt_Selector": "KIE System Prompt Selector",
