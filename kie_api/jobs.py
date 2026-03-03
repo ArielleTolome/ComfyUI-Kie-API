@@ -17,6 +17,11 @@ from typing import Any
 from .http import TransientKieError, requests
 from .log import _log
 
+try:
+    from comfy.utils import ProgressBar as _ComfyProgressBar
+except Exception:
+    _ComfyProgressBar = None
+
 
 CREATE_TASK_URL = "https://api.kie.ai/api/v1/jobs/createTask"
 RECORD_INFO_URL = "https://api.kie.ai/api/v1/jobs/recordInfo"
@@ -155,9 +160,13 @@ def _poll_task_until_complete(
     last_state = None
     last_log_time = start_time
 
+    pbar = _ComfyProgressBar(effective_timeout_s) if _ComfyProgressBar is not None else None
+
     while True:
         now = time.time()
         elapsed = now - start_time
+        if pbar is not None:
+            pbar.update_absolute(min(int(elapsed), effective_timeout_s - 1), effective_timeout_s)
         if elapsed > effective_timeout_s:
             last_state_text = last_state if last_state is not None else "unknown"
             raise RuntimeError(
@@ -183,6 +192,8 @@ def _poll_task_until_complete(
         if state == "success":
             if log:
                 _log(log, f"Task {task_id} completed (elapsed={elapsed:.1f}s)")
+            if pbar is not None:
+                pbar.update_absolute(effective_timeout_s, effective_timeout_s)
             return data
         if state == "fail":
             fail_code = data.get("failCode")

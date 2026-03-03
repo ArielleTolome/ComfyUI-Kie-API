@@ -6,6 +6,11 @@ from typing import Any
 
 import torch
 from .auth import _load_api_key
+
+try:
+    from comfy.utils import ProgressBar as _ComfyProgressBar
+except Exception:
+    _ComfyProgressBar = None
 from .audio import _audio_bytes_to_comfy_audio
 from .images import _download_image, _image_bytes_to_tensor
 from .http import TransientKieError, requests
@@ -170,9 +175,12 @@ def _poll_music_until_complete(
 ) -> dict[str, Any]:
     start_time = time.time()
     last_state = None
+    pbar = _ComfyProgressBar(timeout_s) if _ComfyProgressBar is not None else None
 
     while True:
         elapsed = time.time() - start_time
+        if pbar is not None:
+            pbar.update_absolute(min(int(elapsed), timeout_s - 1), timeout_s)
         if elapsed > timeout_s:
             raise RuntimeError(f"Task {task_id} timed out after {timeout_s}s.")
 
@@ -184,6 +192,8 @@ def _poll_music_until_complete(
             last_state = state
 
         if state == SUCCESS_STATE or state == "complete":
+            if pbar is not None:
+                pbar.update_absolute(timeout_s, timeout_s)
             return record
         if state in FAIL_STATES or state == "error":
             raise RuntimeError(f"Suno task {task_id} failed with state: {state}")
