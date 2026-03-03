@@ -218,7 +218,4 @@ def parse_prompts_json(text: Any, max_items: int = 9, strict: bool = False, debu
             "No prompts found in json_text. Supported keys: prompts (array), prompt1/prompt_1/p1, numeric keys."
             + debug_suffix
         )
-    if debug:
-        debug_lines.append(f"prompt_count={len(prompts)}")
-        print("[KIE Parse Prompt Grid JSON]", " ".join(debug_lines))
     return prompts
