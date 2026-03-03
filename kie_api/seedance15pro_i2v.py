@@ -2,6 +2,7 @@
 
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import torch
@@ -15,7 +16,6 @@ from .results import _extract_result_urls
 from .upload import _image_tensor_to_png_bytes, _truncate_url, _upload_image
 from .validation import _validate_prompt
 from .video import _download_video, _video_bytes_to_comfy_video
-
 
 CREATE_TASK_URL = "https://api.kie.ai/api/v1/jobs/createTask"
 MODEL_NAME = "bytedance/seedance-1.5-pro"
@@ -73,7 +73,10 @@ def _create_seedance15_task(api_key: str, payload: dict[str, Any]) -> tuple[str,
     try:
         response = requests.post(
             CREATE_TASK_URL,
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
             json=payload,
             timeout=30,
         )
@@ -82,7 +85,8 @@ def _create_seedance15_task(api_key: str, payload: dict[str, Any]) -> tuple[str,
 
     if response.status_code == 429 or response.status_code >= 500:
         raise TransientKieError(
-            f"createTask returned HTTP {response.status_code}: {response.text}", status_code=response.status_code
+            f"createTask returned HTTP {response.status_code}: {response.text}",
+            status_code=response.status_code,
         )
 
     try:
@@ -92,7 +96,9 @@ def _create_seedance15_task(api_key: str, payload: dict[str, Any]) -> tuple[str,
 
     if payload_json.get("code") != 200:
         message = payload_json.get("message") or payload_json.get("msg")
-        raise RuntimeError(f"createTask endpoint returned error code {payload_json.get('code')}: {message}")
+        raise RuntimeError(
+            f"createTask endpoint returned error code {payload_json.get('code')}: {message}"
+        )
 
     task_id = (payload_json.get("data") or {}).get("taskId")
     if not task_id:
@@ -101,24 +107,37 @@ def _create_seedance15_task(api_key: str, payload: dict[str, Any]) -> tuple[str,
     return task_id, response.text
 
 
-def _build_input_urls(api_key: str, images: torch.Tensor | None, log: bool) -> list[str]:
+def _build_input_urls(
+    api_key: str, images: torch.Tensor | None, log: bool
+) -> list[str]:
     if images is None:
         return []
 
     total_images = images.shape[0]
     if total_images > 2:
-        _log(log, f"More than 2 images provided ({total_images}); only the first two will be used.")
+        _log(
+            log,
+            f"More than 2 images provided ({total_images}); only the first two will be used.",
+        )
 
     upload_count = min(total_images, 2)
     if upload_count > 0:
         _log(log, f"Uploading {upload_count} image(s) for Seedance 1.5 Pro...")
 
-    image_urls: list[str] = []
-    for idx in range(upload_count):
+    def _process_image(idx: int) -> tuple[int, str]:
         png_bytes = _image_tensor_to_png_bytes(images[idx])
         image_url = _upload_image(api_key, png_bytes)
-        image_urls.append(image_url)
         _log(log, f"Image {idx + 1} upload success: {_truncate_url(image_url)}")
+        return idx, image_url
+
+    results = []
+    if upload_count > 0:
+        with ThreadPoolExecutor(max_workers=upload_count) as executor:
+            results = list(executor.map(_process_image, range(upload_count)))
+
+    # Sort results by original index to preserve order
+    results.sort(key=lambda x: x[0])
+    image_urls = [url for idx, url in results]
 
     return image_urls
 
@@ -163,7 +182,10 @@ def run_seedance15pro_i2v_video(
     _log(log, "Creating Seedance 1.5 Pro task...")
     start_time = time.time()
     task_id, create_response_text = _create_seedance15_task(api_key, payload)
-    _log(log, f"createTask response (elapsed={time.time() - start_time:.1f}s): {create_response_text}")
+    _log(
+        log,
+        f"createTask response (elapsed={time.time() - start_time:.1f}s): {create_response_text}",
+    )
     _log(log, f"Task created with ID {task_id}. Polling for completion...")
 
     record_data = _poll_task_until_complete(
@@ -214,8 +236,14 @@ Outputs:
             },
             "optional": {
                 "images": ("IMAGE",),
-                "aspect_ratio": ("COMBO", {"options": ASPECT_RATIO_OPTIONS, "default": "1:1"}),
-                "resolution": ("COMBO", {"options": RESOLUTION_OPTIONS, "default": "720p"}),
+                "aspect_ratio": (
+                    "COMBO",
+                    {"options": ASPECT_RATIO_OPTIONS, "default": "1:1"},
+                ),
+                "resolution": (
+                    "COMBO",
+                    {"options": RESOLUTION_OPTIONS, "default": "720p"},
+                ),
                 "duration": ("COMBO", {"options": DURATION_OPTIONS, "default": "8"}),
                 "fixed_lens": ("BOOLEAN", {"default": False}),
                 "generate_audio": ("BOOLEAN", {"default": False}),
