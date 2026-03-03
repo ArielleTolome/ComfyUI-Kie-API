@@ -77,6 +77,16 @@ from .kie_api.grid import slice_grid_tensor
 from .kie_api.http import TransientKieError
 
 
+# ── Error Reporting ───────────────────────────────────────────────────────────
+try:
+    from .error_reporter import ErrorReporterMixin
+except ImportError:
+    from error_reporter import ErrorReporterMixin
+
+class _BaseNode(ErrorReporterMixin):
+    pass
+
+
 SYSTEM_PROMPT_MARKER = "system prompt below"
 SYSTEM_PROMPT_PLACEHOLDER = "{user_prompt}"
 SYSTEM_PROMPT_CATEGORIES = ("images", "videos")
@@ -131,7 +141,7 @@ def _scan_system_prompt_templates() -> dict[str, str]:
     return templates
 
 
-class KIE_GetRemainingCredits:
+class KIE_GetRemainingCredits(_BaseNode):
     HELP = """
 KIE Get Remaining Credits
 
@@ -163,7 +173,7 @@ Notes:
         return (raw_json, credits_remaining)
 
 
-class KIE_NanoBananaPro_Image:
+class KIE_NanoBananaPro_Image(_BaseNode):
     HELP = """
 KIE Nano Banana Pro (Image)
 
@@ -230,7 +240,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_NanoBanana2_Image:
+class KIE_NanoBanana2_Image(_BaseNode):
     HELP = """
 KIE Nano Banana 2 (Image)
 
@@ -303,7 +313,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Seedream45_TextToImage:
+class KIE_Seedream45_TextToImage(_BaseNode):
     HELP = """
 KIE Seedream 4.5 Text-To-Image
 
@@ -356,7 +366,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Seedream45_Edit:
+class KIE_Seedream45_Edit(_BaseNode):
     HELP = """
 KIE Seedream 4.5 Edit
 
@@ -413,7 +423,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Kling25_I2V_Pro:
+class KIE_Kling25_I2V_Pro(_BaseNode):
     HELP = """
 KIE Kling 2.5 I2V Pro
 
@@ -493,7 +503,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Kling26_I2V:
+class KIE_Kling26_I2V(_BaseNode):
     HELP = """
 KIE Kling 2.6 (Video)
 
@@ -566,7 +576,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Kling26_T2V:
+class KIE_Kling26_T2V(_BaseNode):
     HELP = """
 KIE Kling 2.6 (Text-to-Video)
 
@@ -639,7 +649,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Kling26Motion_I2V:
+class KIE_Kling26Motion_I2V(_BaseNode):
     HELP = """
 KIE Kling 2.6 Motion-Control (I2V)
 
@@ -719,7 +729,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_KlingElements:
+class KIE_KlingElements(_BaseNode):
     HELP = """
 KIE Kling Elements
 
@@ -778,7 +788,7 @@ Outputs:
         return (element_payload, json.dumps(element_payload, indent=2, ensure_ascii=False))
 
 
-class KIE_KlingElementsBatch:
+class KIE_KlingElementsBatch(_BaseNode):
     HELP = """
 KIE Kling Elements Batch
 
@@ -841,7 +851,7 @@ Outputs:
         return (elements, json.dumps(elements, indent=2, ensure_ascii=False))
 
 
-class KIE_Kling3_Video:
+class KIE_Kling3_Video(_BaseNode):
     HELP = """
 KIE Kling 3.0 (Video)
 
@@ -967,7 +977,7 @@ Outputs:
         return (video_output,)
 
 
-class KIE_Kling3_Preflight:
+class KIE_Kling3_Preflight(_BaseNode):
     HELP = """
 KIE Kling 3.0 Preflight
 
@@ -1092,7 +1102,7 @@ Outputs:
         return (payload, json.dumps(payload, indent=2, ensure_ascii=False), notes)
 
 
-class KIE_Flux2_I2I:
+class KIE_Flux2_I2I(_BaseNode):
     HELP = """
 KIE Flux 2 (Image-to-Image)
 
@@ -1154,7 +1164,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Gemini3Pro_LLM:
+class KIE_Gemini3Pro_LLM(_BaseNode):
     HELP = """
 KIE Gemini (LLM) [Experimental]
 
@@ -1242,7 +1252,7 @@ Outputs:
         return (content, reasoning, raw_json)
 
 
-class KIE_Suno_Music_Basic:
+class KIE_Suno_Music_Basic(_BaseNode):
     HELP = """
 KIE Suno Music (Basic)
 
@@ -1319,7 +1329,7 @@ Outputs:
         return (audio_output_1, audio_output_2, raw_json, image_output_1, image_output_2)
 
 
-class KIE_Suno_Music_Advanced:
+class KIE_Suno_Music_Advanced(_BaseNode):
     HELP = """
 KIE Suno Music (Advanced)
 
@@ -1406,7 +1416,7 @@ Outputs:
         return (audio_output_1, audio_output_2, raw_json, image_output_1, image_output_2)
 
 
-class KIE_GridSlice:
+class KIE_GridSlice(_BaseNode):
     HELP = """
 KIE Grid Slice
 
@@ -1468,7 +1478,7 @@ Outputs:
         return (tile_batch,)
 
 
-class KIEParsePromptGridJSON:
+class KIEParsePromptGridJSON(_BaseNode):
     HELP = """
 KIE Parse Prompt Grid JSON (1..9)
 
@@ -1580,7 +1590,7 @@ Outputs:
         return (*padded, count, prompts, prompts)
 
 
-class KIE_SystemPrompt_Selector:
+class KIE_SystemPrompt_Selector(_BaseNode):
     HELP = """
 KIE System Prompt Selector
 
@@ -1655,7 +1665,7 @@ SORA2_ASPECT_RATIO_OPTIONS = ["portrait", "landscape"]
 SORA2_N_FRAMES_OPTIONS = ["10", "15"]
 SORA2_UPLOAD_METHOD_OPTIONS = ["s3", "oss"]
 
-class KIE_Sora2_TextToVideo:
+class KIE_Sora2_TextToVideo(_BaseNode):
     HELP = """
 KIE Sora 2 (Text to Video)
 
@@ -1737,7 +1747,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Sora2_TextToVideoStable:
+class KIE_Sora2_TextToVideoStable(_BaseNode):
     HELP = """
 KIE Sora 2 (Text to Video Stable)
 
@@ -1814,7 +1824,7 @@ Outputs:
                 _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
                 time.sleep(backoff)
 
-class KIE_Sora2_ImageToVideo:
+class KIE_Sora2_ImageToVideo(_BaseNode):
     HELP = """
 KIE Sora 2 (Image to Video)
 
@@ -1900,7 +1910,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Sora2_ImageToVideoStable:
+class KIE_Sora2_ImageToVideoStable(_BaseNode):
     HELP = """
 KIE Sora 2 (Image to Video Stable)
 
@@ -1981,7 +1991,7 @@ Outputs:
                 _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
                 time.sleep(backoff)
 
-class KIE_Sora2_CharactersPro:
+class KIE_Sora2_CharactersPro(_BaseNode):
     HELP = """
 KIE Sora 2 (Characters Pro)
 
@@ -2064,7 +2074,7 @@ Outputs:
                 _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
                 time.sleep(backoff)
 
-class KIE_Sora2_WatermarkRemover:
+class KIE_Sora2_WatermarkRemover(_BaseNode):
     HELP = """
 KIE Sora 2 (Watermark Remover)
 
