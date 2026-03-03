@@ -1,5 +1,6 @@
 """Kling 3.0 video helpers and element preparation."""
 
+import concurrent.futures
 import re
 import time
 from typing import Any
@@ -125,13 +126,24 @@ def build_kling3_element(
                 f"Element images must contain {ELEMENT_IMAGE_MIN}-{ELEMENT_IMAGE_MAX} images; got {image_count}."
             )
 
-        image_urls: list[str] = []
+        image_urls: list[str] = [""] * image_count
         _log(log, f"Uploading {image_count} element image(s) for '{element_name}'...")
-        for idx in range(image_count):
+
+        def _process_and_upload(idx: int) -> tuple[int, str]:
             png_bytes = _image_tensor_to_png_bytes(image_batch[idx])
-            image_url = _upload_image(api_key, png_bytes)
-            image_urls.append(image_url)
-            _log(log, f"Element image {idx + 1} upload success: {_truncate_url(image_url)}")
+            url = _upload_image(api_key, png_bytes)
+            return idx, url
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(image_count, ELEMENT_IMAGE_MAX)) as executor:
+            future_to_idx = {executor.submit(_process_and_upload, i): i for i in range(image_count)}
+            for future in concurrent.futures.as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                try:
+                    _, image_url = future.result()
+                    image_urls[idx] = image_url
+                    _log(log, f"Element image {idx + 1} upload success: {_truncate_url(image_url)}")
+                except Exception as exc:
+                    raise RuntimeError(f"Failed to upload element image {idx + 1}") from exc
 
         payload: dict[str, Any] = {
             "name": element_name,
