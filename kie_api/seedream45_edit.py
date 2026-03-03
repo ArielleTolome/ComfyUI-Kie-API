@@ -11,6 +11,7 @@ This module:
 - downloads and decodes the resulting image (shared helper)
 """
 
+import concurrent.futures
 import time
 from typing import Any
 
@@ -78,15 +79,29 @@ def run_seedream45_edit(
         _log(log, f"More than {MAX_IMAGE_COUNT} images provided ({total_images}); only first {MAX_IMAGE_COUNT} used.")
 
     upload_count = min(total_images, MAX_IMAGE_COUNT)
-    image_urls: list[str] = []
+    image_urls: list[str] = ["" for _ in range(upload_count)]
     if upload_count > 0:
         _log(log, f"Uploading {upload_count} edit image(s)...")
 
-    for idx in range(upload_count):
+    def _upload_single_image(idx: int) -> tuple[int, str]:
         png_bytes = _image_tensor_to_png_bytes(images[idx])
-        image_url = _upload_image(api_key, png_bytes)
-        image_urls.append(image_url)
-        _log(log, f"Image {idx + 1} upload success: {_truncate_url(image_url)}")
+        url = _upload_image(api_key, png_bytes)
+        return idx, url
+
+    if upload_count > 0:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(upload_count, 14)) as executor:
+            future_to_idx = {
+                executor.submit(_upload_single_image, idx): idx
+                for idx in range(upload_count)
+            }
+            for future in concurrent.futures.as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                try:
+                    res_idx, image_url = future.result()
+                    image_urls[res_idx] = image_url
+                    _log(log, f"Image {res_idx + 1} upload success: {_truncate_url(image_url)}")
+                except Exception as exc:
+                    raise RuntimeError(f"Failed to upload image {idx + 1}: {exc}") from exc
 
     payload = {
         "model": MODEL_NAME,
