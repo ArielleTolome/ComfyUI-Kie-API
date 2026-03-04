@@ -189,6 +189,7 @@ This workflow is focused on direct comparison between **Nano Banana Pro** and **
 This is useful for quickly evaluating model preference by prompt type, fidelity, and cost/performance tradeoffs.
 
 ## Changelog
+- 2026-03-04: Added KIE_Seedream_Bytedance_TextToImage node (Seedream 3.0 / bytedance/seedream model with image_size, guidance_scale, seed, enable_safety_checker). Fixed: auth.py now supports KIE_API_KEY env var; seedream45_t2i.py refactored to use shared _create_task; timeout defaults corrected from 300s to 2000s on NanoBanana/Seedream/Flux2 nodes; poll_interval_s and timeout_s exposed in UI for those nodes. Bumped version to 0.3.3.
 - 2026-03-04: Added AGENTS.md (AI agent guidelines), api_summary.md (API parameter audit), and seedream_issue.md (Seedream 3.0 migration plan). Bumped version to 0.3.2.
 - 2026-03-03: Added Sora 2 API nodes (Text-To-Video, Image-To-Video, Characters Pro, Watermark Remover). Bumped version to 0.2.0.
 - 2026-02-28: Added new example workflow `KIE-AI-Banana-Pro-Banana-Pro.json` to repository docs.

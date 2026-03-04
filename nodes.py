@@ -29,6 +29,10 @@ from .kie_api.seedream45_edit import (
     QUALITY_OPTIONS as SEEDREAM_EDIT_QUALITY_OPTIONS,
     run_seedream45_edit,
 )
+from .kie_api.seedream_bytedance import (
+    IMAGE_SIZE_OPTIONS as SEEDREAM_BYTEDANCE_IMAGE_SIZE_OPTIONS,
+    run_seedream_bytedance_text_to_image,
+)
 from .kie_api.seedancev1pro_fast_i2v import KIE_SeedanceV1Pro_Fast_I2V
 from .kie_api.seedance15pro_i2v import KIE_Seedance15Pro_I2V
 from .kie_api.kling26_i2v import (
@@ -201,6 +205,8 @@ Outputs:
                 "aspect_ratio": ("COMBO", {"options": ASPECT_RATIO_OPTIONS, "default": "auto"}),
                 "resolution": ("COMBO", {"options": RESOLUTION_OPTIONS, "default": "1K"}),
                 "output_format": ("COMBO", {"options": OUTPUT_FORMAT_OPTIONS, "default": "png"}),
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -216,9 +222,9 @@ Outputs:
         aspect_ratio: str = "auto",
         resolution: str = "1K",
         output_format: str = "png",
-        log: bool = True,
         poll_interval_s: float = 10.0,
-        timeout_s: int = 300,
+        timeout_s: int = 2000,
+        log: bool = True,
         retry_on_fail: bool = True,
         max_retries: int = 2,
         retry_backoff_s: float = 3.0,
@@ -272,6 +278,8 @@ Outputs:
                 "aspect_ratio": ("COMBO", {"options": NANOBANANA2_ASPECT_RATIO_OPTIONS, "default": "auto"}),
                 "resolution": ("COMBO", {"options": NANOBANANA2_RESOLUTION_OPTIONS, "default": "1K"}),
                 "output_format": ("COMBO", {"options": NANOBANANA2_OUTPUT_FORMAT_OPTIONS, "default": "jpg"}),
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -288,9 +296,9 @@ Outputs:
         aspect_ratio: str = "auto",
         resolution: str = "1K",
         output_format: str = "jpg",
-        log: bool = True,
         poll_interval_s: float = 10.0,
-        timeout_s: int = 300,
+        timeout_s: int = 2000,
+        log: bool = True,
         retry_on_fail: bool = True,
         max_retries: int = 2,
         retry_backoff_s: float = 3.0,
@@ -337,6 +345,8 @@ Outputs:
             "optional": {
                 "aspect_ratio": ("COMBO", {"options": SEEDREAM_ASPECT_RATIO_OPTIONS, "default": "1:1"}),
                 "quality": ("COMBO", {"options": SEEDREAM_QUALITY_OPTIONS, "default": "basic"}),
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -351,9 +361,9 @@ Outputs:
         prompt: str,
         aspect_ratio: str = "1:1",
         quality: str = "basic",
-        log: bool = True,
         poll_interval_s: float = 10.0,
-        timeout_s: int = 300,
+        timeout_s: int = 2000,
+        log: bool = True,
     ):
         image_tensor = run_seedream45_text_to_image(
             prompt=prompt,
@@ -392,6 +402,8 @@ Outputs:
             "optional": {
                 "aspect_ratio": ("COMBO", {"options": SEEDREAM_EDIT_ASPECT_RATIO_OPTIONS, "default": "1:1"}),
                 "quality": ("COMBO", {"options": SEEDREAM_EDIT_QUALITY_OPTIONS, "default": "basic"}),
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -407,15 +419,84 @@ Outputs:
         images: torch.Tensor,
         aspect_ratio: str = "1:1",
         quality: str = "basic",
-        log: bool = True,
         poll_interval_s: float = 10.0,
-        timeout_s: int = 300,
+        timeout_s: int = 2000,
+        log: bool = True,
     ):
         image_tensor = run_seedream45_edit(
             prompt=prompt,
             images=images,
             aspect_ratio=aspect_ratio,
             quality=quality,
+            poll_interval_s=poll_interval_s,
+            timeout_s=timeout_s,
+            log=log,
+        )
+        return (image_tensor,)
+
+
+class KIE_Seedream_Bytedance_TextToImage(_BaseNode):
+    HELP = """
+KIE Seedream 3.0 (bytedance/seedream) Text-To-Image
+
+Generate an image using the Seedream 3.0 model (bytedance/seedream).
+
+This is a newer model tier than Seedream 4.5 with different parameters:
+use image_size (enum) instead of aspect_ratio, and tune output with
+guidance_scale and seed for reproducibility.
+
+Inputs:
+- prompt: Text prompt (required, max 3000 chars)
+- image_size: Output dimensions (square / square_hd / portrait_4_3 /
+              portrait_16_9 / landscape_4_3 / landscape_16_9)
+- guidance_scale: Prompt adherence strength, 1.0-10.0 (default 7.5)
+- seed: Random seed for reproducibility; -1 = random each run
+- enable_safety_checker: Run safety filter on output (default: on)
+- poll_interval_s / timeout_s / log
+
+Outputs:
+- IMAGE: ComfyUI image tensor (BHWC float32 0-1)
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True}),
+            },
+            "optional": {
+                "image_size": ("COMBO", {"options": SEEDREAM_BYTEDANCE_IMAGE_SIZE_OPTIONS, "default": "square_hd"}),
+                "guidance_scale": ("FLOAT", {"default": 7.5, "min": 1.0, "max": 10.0, "step": 0.1}),
+                "seed": ("INT", {"default": -1, "min": -1, "max": 2147483647}),
+                "enable_safety_checker": ("BOOLEAN", {"default": True}),
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str,
+        image_size: str = "square_hd",
+        guidance_scale: float = 7.5,
+        seed: int = -1,
+        enable_safety_checker: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        log: bool = True,
+    ):
+        image_tensor = run_seedream_bytedance_text_to_image(
+            prompt=prompt,
+            image_size=image_size,
+            guidance_scale=guidance_scale,
+            seed=seed,
+            enable_safety_checker=enable_safety_checker,
             poll_interval_s=poll_interval_s,
             timeout_s=timeout_s,
             log=log,
@@ -1114,7 +1195,7 @@ Inputs:
 - model: flux-2/pro-image-to-image or flux-2/flex-image-to-image
 - aspect_ratio: Output aspect ratio (enum)
 - resolution: 1K or 2K
-- log: Console logging on/off
+- poll_interval_s / timeout_s / log
 
 Outputs:
 - IMAGE: ComfyUI image tensor (BHWC float32 0–1)
@@ -1131,6 +1212,8 @@ Outputs:
                 "resolution": ("COMBO", {"options": FLUX2_RESOLUTION_OPTIONS, "default": "1K"}),
             },
             "optional": {
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -1147,9 +1230,9 @@ Outputs:
         model: str = "flux-2/pro-image-to-image",
         aspect_ratio: str = "1:1",
         resolution: str = "1K",
-        log: bool = True,
         poll_interval_s: float = 10.0,
-        timeout_s: int = 300,
+        timeout_s: int = 2000,
+        log: bool = True,
     ):
         image_tensor = run_flux2_i2i(
             model=model,
@@ -1696,7 +1779,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -1776,7 +1859,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -1857,7 +1940,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -1941,7 +2024,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -2022,7 +2105,7 @@ Outputs:
                 "character_user_name": ("STRING", {"default": ""}),
                 "safety_instruction": ("STRING", {"multiline": True, "default": ""}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -2099,7 +2182,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -2150,6 +2233,7 @@ NODE_CLASS_MAPPINGS = {
     "KIE_NanoBanana2_Image": KIE_NanoBanana2_Image,
     "KIE_Seedream45_TextToImage": KIE_Seedream45_TextToImage,
     "KIE_Seedream45_Edit": KIE_Seedream45_Edit,
+    "KIE_Seedream_Bytedance_TextToImage": KIE_Seedream_Bytedance_TextToImage,
     "KIE_SeedanceV1Pro_Fast_I2V": KIE_SeedanceV1Pro_Fast_I2V,
     "KIE_Seedance15Pro_I2V": KIE_Seedance15Pro_I2V,
     "KIE_Kling25_I2V_Pro": KIE_Kling25_I2V_Pro,
@@ -2180,6 +2264,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KIE_NanoBanana2_Image": "Nano Banana 2",
     "KIE_Seedream45_TextToImage": "KIE Seedream 4.5 Text-To-Image",
     "KIE_Seedream45_Edit": "KIE Seedream 4.5 Edit",
+    "KIE_Seedream_Bytedance_TextToImage": "KIE Seedream 3.0 (bytedance) Text-To-Image",
     "KIE_SeedanceV1Pro_Fast_I2V": "KIE Seedance V1 Pro Fast (I2V)",
     "KIE_Seedance15Pro_I2V": "KIE Seedance 1.5 Pro (I2V/T2V)",
     "KIE_Kling25_I2V_Pro": "KIE Kling 2.5 I2V Pro",
