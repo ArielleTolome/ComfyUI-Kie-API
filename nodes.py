@@ -206,7 +206,7 @@ Outputs:
                 "resolution": ("COMBO", {"options": RESOLUTION_OPTIONS, "default": "1K"}),
                 "output_format": ("COMBO", {"options": OUTPUT_FORMAT_OPTIONS, "default": "png"}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -279,7 +279,7 @@ Outputs:
                 "resolution": ("COMBO", {"options": NANOBANANA2_RESOLUTION_OPTIONS, "default": "1K"}),
                 "output_format": ("COMBO", {"options": NANOBANANA2_OUTPUT_FORMAT_OPTIONS, "default": "jpg"}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -346,7 +346,7 @@ Outputs:
                 "aspect_ratio": ("COMBO", {"options": SEEDREAM_ASPECT_RATIO_OPTIONS, "default": "1:1"}),
                 "quality": ("COMBO", {"options": SEEDREAM_QUALITY_OPTIONS, "default": "basic"}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -403,7 +403,7 @@ Outputs:
                 "aspect_ratio": ("COMBO", {"options": SEEDREAM_EDIT_ASPECT_RATIO_OPTIONS, "default": "1:1"}),
                 "quality": ("COMBO", {"options": SEEDREAM_EDIT_QUALITY_OPTIONS, "default": "basic"}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -470,7 +470,7 @@ Outputs:
                 "seed": ("INT", {"default": -1, "min": -1, "max": 2147483647}),
                 "enable_safety_checker": ("BOOLEAN", {"default": True}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -1213,7 +1213,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -1779,7 +1779,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -1859,7 +1859,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -1940,7 +1940,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -2024,7 +2024,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -2105,7 +2105,7 @@ Outputs:
                 "character_user_name": ("STRING", {"default": ""}),
                 "safety_instruction": ("STRING", {"multiline": True, "default": ""}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
@@ -2182,7 +2182,7 @@ Outputs:
             },
             "optional": {
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 30, "max": 10000, "step": 10}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
                 "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
                 "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
