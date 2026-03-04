@@ -1,13 +1,13 @@
 **Project Overview**
 - This is a ComfyUI custom node pack that connects to the Kie.ai API
 - All nodes are defined in nodes.py and registered in __init__.py
-- API key is loaded from config/kie_key.txt at runtime
-- If KIE_API_KEY environment variable is present, it takes priority over the file
+- API key is loaded from `config/kie_key.txt` at runtime (see `kie_api/auth.py`)
+- Environment variable override is not currently implemented; to add it, update `_load_api_key()` in `kie_api/auth.py` to check `os.environ.get('KIE_API_KEY')` first
 
 **Node Architecture**
 - Every node follows the same pattern: INPUT_TYPES classmethod defines inputs, a main method calls the Kie.ai API, polls async until complete using the existing polling helper, and returns the output
 - Async polling timeout is set to 2000 seconds
-- All image inputs arrive as ComfyUI IMAGE tensors (BCHW format) and must be converted to base64 before sending to the API
+- All image inputs arrive as ComfyUI IMAGE tensors in BHWC format `[B, H, W, 3]`; individual frames are passed as `[H, W, 3]` tensors and converted to PNG bytes via `_image_tensor_to_png_bytes()` in `kie_api/upload.py`, then uploaded directly (not base64-encoded)
 - VIDEO outputs are returned as file paths or URLs depending on the node
 
 **File Map**
