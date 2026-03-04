@@ -1,8 +1,7 @@
 **Project Overview**
 - This is a ComfyUI custom node pack that connects to the Kie.ai API
 - All nodes are defined in nodes.py and registered in __init__.py
-- API key is loaded from `config/kie_key.txt` at runtime (see `kie_api/auth.py`)
-- Environment variable override is not currently implemented; to add it, update `_load_api_key()` in `kie_api/auth.py` to check `os.environ.get('KIE_API_KEY')` first
+- API key resolution order: (1) `KIE_API_KEY` environment variable, (2) `config/kie_key.txt` — see `kie_api/auth.py`
 
 **Node Architecture**
 - Every node follows the same pattern: INPUT_TYPES classmethod defines inputs, a main method calls the Kie.ai API, polls async until complete using the existing polling helper, and returns the output
