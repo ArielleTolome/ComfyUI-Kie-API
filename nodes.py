@@ -72,6 +72,19 @@ from .kie_api.flux2_i2i import (
     RESOLUTION_OPTIONS as FLUX2_RESOLUTION_OPTIONS,
     run_flux2_i2i,
 )
+from .kie_api.grok_imagine_t2v import (
+    ASPECT_RATIO_OPTIONS as GROK_T2V_ASPECT_RATIO_OPTIONS,
+    DURATION_OPTIONS as GROK_T2V_DURATION_OPTIONS,
+    MODE_OPTIONS as GROK_T2V_MODE_OPTIONS,
+    RESOLUTION_OPTIONS as GROK_T2V_RESOLUTION_OPTIONS,
+    run_grok_imagine_t2v_video,
+)
+from .kie_api.grok_imagine_i2v import (
+    DURATION_OPTIONS as GROK_I2V_DURATION_OPTIONS,
+    MODE_OPTIONS as GROK_I2V_MODE_OPTIONS,
+    RESOLUTION_OPTIONS as GROK_I2V_RESOLUTION_OPTIONS,
+    run_grok_imagine_i2v_video,
+)
 from .kie_api.prompt_lists import parse_prompts_json
 from .kie_api.grid import slice_grid_tensor
 from .kie_api.http import TransientKieError
@@ -627,6 +640,173 @@ Outputs:
                     sound=sound,
                     aspect_ratio=aspect_ratio,
                     duration=duration,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
+
+
+class KIE_GrokImagine_T2V:
+    HELP = """
+KIE Grok Imagine (Text-to-Video)
+
+Generate a short video clip from a text prompt using Grok Imagine.
+
+Inputs:
+- prompt: Text prompt (required, up to 5000 chars)
+- aspect_ratio: 2:3, 3:2, 1:1, 9:16, or 16:9
+- mode: fun, normal, or spicy
+- duration: 6s, 10s, or 15s
+- resolution: 480p or 720p
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "aspect_ratio": ("COMBO", {"options": GROK_T2V_ASPECT_RATIO_OPTIONS, "default": "16:9"}),
+                "mode": ("COMBO", {"options": GROK_T2V_MODE_OPTIONS, "default": "normal"}),
+                "duration": ("COMBO", {"options": GROK_T2V_DURATION_OPTIONS, "default": "6"}),
+                "resolution": ("COMBO", {"options": GROK_T2V_RESOLUTION_OPTIONS, "default": "480p"}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str,
+        aspect_ratio: str = "16:9",
+        mode: str = "normal",
+        duration: str = "6",
+        resolution: str = "480p",
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_grok_imagine_t2v_video(
+                    prompt=prompt,
+                    aspect_ratio=aspect_ratio,
+                    mode=mode,
+                    duration=duration,
+                    resolution=resolution,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
+
+
+class KIE_GrokImagine_I2V:
+    HELP = """
+KIE Grok Imagine (Image-to-Video)
+
+Generate a short video clip from either one external image or a Grok-generated image reference.
+
+Inputs:
+- prompt: Optional text prompt (up to 5000 chars)
+- images: Optional external source image batch (first image used)
+- task_id: Optional Grok image-generation task id source
+- index: Which Grok-generated image to use (0-5) when task_id is set
+- mode: fun, normal, or spicy
+- duration: 6s, 10s, or 15s
+- resolution: 480p or 720p
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
+
+Rules:
+- Provide exactly one source method: images or task_id
+- External image mode supports only one source image
+- Spicy mode is only supported with task_id sources
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "images": ("IMAGE",),
+                "task_id": ("STRING", {"default": ""}),
+                "index": ("INT", {"default": 0, "min": 0, "max": 5, "step": 1}),
+                "mode": ("COMBO", {"options": GROK_I2V_MODE_OPTIONS, "default": "normal"}),
+                "duration": ("COMBO", {"options": GROK_I2V_DURATION_OPTIONS, "default": "6"}),
+                "resolution": ("COMBO", {"options": GROK_I2V_RESOLUTION_OPTIONS, "default": "480p"}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str = "",
+        images: torch.Tensor | None = None,
+        task_id: str = "",
+        index: int = 0,
+        mode: str = "normal",
+        duration: str = "6",
+        resolution: str = "480p",
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_grok_imagine_i2v_video(
+                    images=images,
+                    task_id_ref=task_id,
+                    index=index,
+                    prompt=prompt,
+                    mode=mode,
+                    duration=duration,
+                    resolution=resolution,
                     poll_interval_s=poll_interval_s,
                     timeout_s=timeout_s,
                     log=log,
@@ -1658,6 +1838,8 @@ NODE_CLASS_MAPPINGS = {
     "KIE_Kling3_Video": KIE_Kling3_Video,
     "KIE_Kling3_Preflight": KIE_Kling3_Preflight,
     "KIE_Flux2_I2I": KIE_Flux2_I2I,
+    "KIE_GrokImagine_T2V": KIE_GrokImagine_T2V,
+    "KIE_GrokImagine_I2V": KIE_GrokImagine_I2V,
     "KIE_Gemini3Pro_LLM": KIE_Gemini3Pro_LLM,
     "KIE_Suno_Music_Basic": KIE_Suno_Music_Basic,
     "KIE_Suno_Music_Advanced": KIE_Suno_Music_Advanced,
@@ -1682,6 +1864,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KIE_Kling3_Video": "KIE Kling 3.0 (Video)",
     "KIE_Kling3_Preflight": "KIE Kling 3.0 Preflight",
     "KIE_Flux2_I2I": "KIE Flux 2 (Image-to-Image)",
+    "KIE_GrokImagine_T2V": "KIE Grok Imagine (T2V)",
+    "KIE_GrokImagine_I2V": "KIE Grok Imagine (I2V)",
     "KIE_Gemini3Pro_LLM": "KIE Gemini (LLM) [Experimental]",
     "KIE_Suno_Music_Basic": "KIE Suno Music (Basic)",
     "KIE_Suno_Music_Advanced": "KIE Suno Music (Advanced)",

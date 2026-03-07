@@ -62,6 +62,12 @@ This node pack currently includes the following nodes:
 - **Kling 2.6 Text-to-Video**
   - Generates video directly from a text prompt.
   - Supports aspect ratio, duration, and sound options as exposed by the API.
+- **Grok Imagine Text-to-Video**
+  - Generates video directly from a text prompt.
+  - Supports aspect ratio, mode, duration, and resolution options from the KIE Grok Imagine API.
+- **Grok Imagine Image-to-Video**
+  - Generates video from either one uploaded external image or a Grok image-generation task reference.
+  - Supports `task_id` + `index` selection for animating one of Grok's generated images.
 - **Kling 2.6 Motion-Control Image-to-Video**
   - Image-to-video generation with additional motion control parameters.
   - Designed for more directed camera and motion behavior.
@@ -116,6 +122,11 @@ This node pack currently includes the following nodes:
 Use this section after reviewing Current Available Nodes.
 
 - Full docs index (all nodes): [`web/docs/README.md`](web/docs/README.md)
+- API specs:
+  - [`web/docs/KIE_GrokImagine_T2V_Spec.md`](web/docs/KIE_GrokImagine_T2V_Spec.md) - Grok Imagine text-to-video API reference.
+  - [`web/docs/KIE_GrokImagine_I2V_Spec.md`](web/docs/KIE_GrokImagine_I2V_Spec.md) - Grok Imagine image-to-video API reference.
+  - [`web/docs/KIE_GrokImagine_T2I_Spec.md`](web/docs/KIE_GrokImagine_T2I_Spec.md) - Grok Imagine text-to-image API reference.
+  - [`web/docs/KIE_GrokImagine_I2I_Spec.md`](web/docs/KIE_GrokImagine_I2I_Spec.md) - Grok Imagine image-to-image API reference.
 - Recommended Kling 3 reading order:
   - [`web/docs/KIE_Kling_Elements.md`](web/docs/KIE_Kling_Elements.md)
   - [`web/docs/KIE_Kling_Elements_Batch.md`](web/docs/KIE_Kling_Elements_Batch.md)
@@ -189,6 +200,9 @@ This workflow is focused on direct comparison between **Nano Banana Pro** and **
 This is useful for quickly evaluating model preference by prompt type, fidelity, and cost/performance tradeoffs.
 
 ## Changelog
+- 2026-03-07: Added the Grok Imagine text-to-video node and synced docs/spec references.
+- 2026-03-07: Added the Grok Imagine image-to-video node and synced docs/spec references.
+- 2026-03-07: Added Grok Imagine text-to-image and image-to-image API spec docs for future node implementation.
 - 2026-02-28: Added new example workflow `KIE-AI-Banana-Pro-Banana-Pro.json` to repository docs.
 - 2026-02-28: Documentation clarified Nano Banana Pro (up to 8 images) and Nano Banana 2 (up to 14 images + optional Google web search). Bumped version to 0.1.8.
 - 2026-02-28: Updated Nano Banana Pro + Nano Banana 2 payload behavior to always send `image_input` (empty list when no images are connected).

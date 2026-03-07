@@ -13,8 +13,16 @@ This folder contains node documentation for the ComfyUI KIE API pack.
 - Kling 2.6 I2V: [`KIE_Kling26_I2V.md`](KIE_Kling26_I2V.md)
 - Kling 2.6 Motion I2V: [`KIE_Kling26Motion_I2V.md`](KIE_Kling26Motion_I2V.md)
 - Kling 2.6 T2V: [`kie_kling26_t2v.md`](kie_kling26_t2v.md)
+- Grok Imagine T2V: [`KIE_GrokImagine_T2V.md`](KIE_GrokImagine_T2V.md)
+- Grok Imagine I2V: [`KIE_GrokImagine_I2V.md`](KIE_GrokImagine_I2V.md)
 - Seedance V1 Pro Fast I2V: [`KIE_SeedanceV1Pro_Fast_I2V.md`](KIE_SeedanceV1Pro_Fast_I2V.md)
 - Seedance 1.5 Pro I2V/T2V: [`KIE_Seedance15Pro_I2V.md`](KIE_Seedance15Pro_I2V.md)
+
+## API Specs
+- Grok Imagine T2V spec: [`KIE_GrokImagine_T2V_Spec.md`](KIE_GrokImagine_T2V_Spec.md)
+- Grok Imagine I2V spec: [`KIE_GrokImagine_I2V_Spec.md`](KIE_GrokImagine_I2V_Spec.md)
+- Grok Imagine T2I spec: [`KIE_GrokImagine_T2I_Spec.md`](KIE_GrokImagine_T2I_Spec.md)
+- Grok Imagine I2I spec: [`KIE_GrokImagine_I2I_Spec.md`](KIE_GrokImagine_I2I_Spec.md)
 
 ## Image Nodes
 - Nano Banana Pro: [`KIE_NanoBananaPro_Image.md`](KIE_NanoBananaPro_Image.md)
