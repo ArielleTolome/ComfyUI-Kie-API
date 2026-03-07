@@ -145,6 +145,52 @@ def _scan_system_prompt_templates() -> dict[str, str]:
     return templates
 
 
+class AnyType(str):
+    def __ne__(self, __value: object) -> bool:
+        return False
+any_type = AnyType("*")
+
+
+class KIE_CreditBudgetGuard(_BaseNode):
+    HELP = """
+KIE Credit Budget Guard
+
+Acts as a gate in ComfyUI workflows. Before an expensive generation node runs,
+this node checks the current credit balance via the Kie.ai API and only allows
+the workflow to continue if there are enough credits remaining.
+
+Inputs:
+- min_credits_required: INT, the minimum credits needed to proceed (default 100)
+- passthrough: any type, passed through if the check passes
+
+Outputs:
+- passthrough: the same value passed through if credits are sufficient
+- credits_remaining: INT, the current credit balance
+"""
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "min_credits_required": ("INT", {"default": 100, "min": 0, "max": 1000000, "step": 1}),
+            },
+            "optional": {
+                "passthrough": (any_type,),
+            }
+        }
+
+    RETURN_TYPES = (any_type, "INT")
+    RETURN_NAMES = ("passthrough", "credits_remaining")
+    FUNCTION = "check_budget"
+    CATEGORY = "kie/helpers"
+
+    def check_budget(self, min_credits_required: int, passthrough=None):
+        api_key = _load_api_key()
+        _, credits_remaining = _fetch_remaining_credits(api_key)
+        if credits_remaining < min_credits_required:
+            raise RuntimeError(f"Insufficient Kie.ai credits: {credits_remaining} remaining, {min_credits_required} required. Workflow stopped.")
+        return (passthrough, credits_remaining)
+
+
 class KIE_GetRemainingCredits(_BaseNode):
     HELP = """
 KIE Get Remaining Credits
@@ -2228,6 +2274,7 @@ Outputs:
 
 
 NODE_CLASS_MAPPINGS = {
+    "KIE_CreditBudgetGuard": KIE_CreditBudgetGuard,
     "KIE_GetRemainingCredits": KIE_GetRemainingCredits,
     "KIE_NanoBananaPro_Image": KIE_NanoBananaPro_Image,
     "KIE_NanoBanana2_Image": KIE_NanoBanana2_Image,
@@ -2259,6 +2306,7 @@ NODE_CLASS_MAPPINGS = {
     "KIE_Sora2_WatermarkRemover": KIE_Sora2_WatermarkRemover,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "KIE_CreditBudgetGuard": "KIE Credit Budget Guard",
     "KIE_GetRemainingCredits": "KIE Get Remaining Credits",
     "KIE_NanoBananaPro_Image": "KIE Nano Banana Pro (Image)",
     "KIE_NanoBanana2_Image": "Nano Banana 2",
