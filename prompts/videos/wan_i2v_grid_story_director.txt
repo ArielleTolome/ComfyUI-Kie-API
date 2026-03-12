@@ -80,6 +80,7 @@ OUTPUT REQUIREMENTS
 - No commentary.
 - No metadata.
 - No explanations.
+- DO NOT wrap the output in markdown code blocks (e.g., no ```json). Return raw text only.
 
 ---
 
