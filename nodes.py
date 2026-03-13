@@ -114,6 +114,19 @@ from .kie_api.prompt_lists import parse_prompts_json
 from .kie_api.grid import slice_grid_tensor
 from .kie_api.http import TransientKieError
 
+try:
+    from .error_reporter import ErrorReporterMixin
+except ImportError:
+    try:
+        from error_reporter import ErrorReporterMixin
+    except ImportError:
+        class ErrorReporterMixin:
+            pass
+
+
+class _BaseNode(ErrorReporterMixin):
+    pass
+
 
 SYSTEM_PROMPT_MARKER = "system prompt below"
 SYSTEM_PROMPT_PLACEHOLDER = "{user_prompt}"
