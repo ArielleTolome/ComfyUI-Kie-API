@@ -51,6 +51,12 @@ This node pack currently includes the following nodes:
 - **Flux 2 Image-to-Image (Pro/Flex)**
   - Image-to-image node with a model dropdown for Pro or Flex.
   - Accepts 1–8 input images via ComfyUI batch.
+- **Grok Imagine Text-to-Image**
+  - Generates one or more images from a text prompt.
+  - Returns the image batch plus a `task_id` for downstream Grok I2V chaining.
+- **Grok Imagine Image-to-Image**
+  - Generates one or more edited images from a single uploaded source image.
+  - Returns the image batch plus a `task_id` for downstream Grok I2V chaining.
 
 ## Video Nodes
 - **Kling 2.6 Image-to-Video**
@@ -62,9 +68,19 @@ This node pack currently includes the following nodes:
 - **Kling 2.6 Text-to-Video**
   - Generates video directly from a text prompt.
   - Supports aspect ratio, duration, and sound options as exposed by the API.
+- **Grok Imagine Text-to-Video**
+  - Generates video directly from a text prompt.
+  - Supports aspect ratio, mode, duration, and resolution options from the KIE Grok Imagine API.
+- **Grok Imagine Image-to-Video**
+  - Generates video from either one uploaded external image or a Grok image-generation task reference.
+  - Supports `task_id` + `index` selection for animating one of Grok's generated images.
 - **Kling 2.6 Motion-Control Image-to-Video**
   - Image-to-video generation with additional motion control parameters.
   - Designed for more directed camera and motion behavior.
+- **Kling 3.0 Motion-Control Image-to-Video**
+  - Generates video from a required reference image and a required motion-driver video.
+  - Mirrors the Kling 2.6 motion-control node shape with Kling 3.0 model routing.
+  - Keeps prompt optional and returns a ComfyUI VIDEO output.
 - **Kling 3.0 (Video)**
   - Supports single-shot or multi-shot generation.
   - Supports optional first/last frame control and named element references.
@@ -116,19 +132,37 @@ This node pack currently includes the following nodes:
 Use this section after reviewing Current Available Nodes.
 
 - Full docs index (all nodes): [`web/docs/README.md`](web/docs/README.md)
+- Kling 3.0 motion status: implemented in this repo with both the node doc and API spec linked below.
+- Grok Imagine status: `T2I`, `I2I`, `T2V`, and `I2V` are implemented in this repo.
+- Grok Imagine node docs:
+  - [`web/docs/KIE_GrokImagine_T2I.md`](web/docs/KIE_GrokImagine_T2I.md) - Grok Imagine text-to-image node reference.
+  - [`web/docs/KIE_GrokImagine_I2I.md`](web/docs/KIE_GrokImagine_I2I.md) - Grok Imagine image-to-image node reference.
+  - [`web/docs/KIE_GrokImagine_T2V.md`](web/docs/KIE_GrokImagine_T2V.md) - Grok Imagine text-to-video node reference.
+  - [`web/docs/KIE_GrokImagine_I2V.md`](web/docs/KIE_GrokImagine_I2V.md) - Grok Imagine image-to-video node reference.
+- Kling 3.0 motion docs:
+  - [`web/docs/KIE_Kling3_Motion_I2V.md`](web/docs/KIE_Kling3_Motion_I2V.md) - Kling 3.0 motion-control node reference.
+  - [`web/docs/KIE_Kling3_Motion_I2V_Spec.md`](web/docs/KIE_Kling3_Motion_I2V_Spec.md) - Kling 3.0 motion-control image-to-video API reference.
+- API specs:
+  - [`web/docs/KIE_GrokImagine_T2V_Spec.md`](web/docs/KIE_GrokImagine_T2V_Spec.md) - Grok Imagine text-to-video API reference.
+  - [`web/docs/KIE_GrokImagine_I2V_Spec.md`](web/docs/KIE_GrokImagine_I2V_Spec.md) - Grok Imagine image-to-video API reference.
+  - [`web/docs/KIE_GrokImagine_T2I_Spec.md`](web/docs/KIE_GrokImagine_T2I_Spec.md) - Grok Imagine text-to-image API reference.
+  - [`web/docs/KIE_GrokImagine_I2I_Spec.md`](web/docs/KIE_GrokImagine_I2I_Spec.md) - Grok Imagine image-to-image API reference.
 - Recommended Kling 3 reading order:
   - [`web/docs/KIE_Kling_Elements.md`](web/docs/KIE_Kling_Elements.md)
   - [`web/docs/KIE_Kling_Elements_Batch.md`](web/docs/KIE_Kling_Elements_Batch.md)
   - [`web/docs/KIE_Kling3_Preflight.md`](web/docs/KIE_Kling3_Preflight.md)
   - [`web/docs/KIE_Kling3_Video.md`](web/docs/KIE_Kling3_Video.md)
+  - [`web/docs/KIE_Kling3_Motion_I2V.md`](web/docs/KIE_Kling3_Motion_I2V.md)
+  - [`web/docs/KIE_Kling3_Motion_I2V_Spec.md`](web/docs/KIE_Kling3_Motion_I2V_Spec.md)
 - Example workflows:
   - [`Kie-AI-Nodes.json`](Kie-AI-Nodes.json)
   - [`Kie-AI-Banana-Pro-Grid.json`](Kie-AI-Banana-Pro-Grid.json)
   - [`KIE-AI-Banana-Pro-Banana-Pro.json`](KIE-AI-Banana-Pro-Banana-Pro.json)
+  - [`example_workflows/Kie AI - Kling 3.0 Motion.json`](example_workflows/Kie%20AI%20-%20Kling%203.0%20Motion.json)
 
 ## Included Example Workflows
 
-This repository includes two example workflows intended as both a test bed and a reference for how these nodes can be used together.
+This repository includes several example workflows intended as both a test bed and a reference for how these nodes can be used together.
 
 ---
 
@@ -188,7 +222,30 @@ This workflow is focused on direct comparison between **Nano Banana Pro** and **
 
 This is useful for quickly evaluating model preference by prompt type, fidelity, and cost/performance tradeoffs.
 
+---
+
+### 4) Kling 3.0 Motion-Control Workflow
+**Kie AI - Kling 3.0 Motion.json**
+
+This workflow is focused on **Kling 3.0 Motion-Control** using:
+- one reference image
+- one motion-driver video
+- an optional prompt for extra control
+
+**Overview:**
+- Transfers motion from a driver video onto the subject from a still image
+- Exposes Kling 3.0 motion settings such as `character_orientation` and resolution mode
+- Useful for directed image-to-video tests where identity comes from the image and movement comes from the video
+
+Related docs:
+- [`web/docs/KIE_Kling3_Motion_I2V.md`](web/docs/KIE_Kling3_Motion_I2V.md)
+- [`web/docs/KIE_Kling3_Motion_I2V_Spec.md`](web/docs/KIE_Kling3_Motion_I2V_Spec.md)
+
 ## Changelog
+- 2026-03-13: Merged upstream Kling 3.0 motion-control, Grok Imagine nodes, and upload cache fix. Bumped version to 0.3.5.
+- 2026-03-12: Upstream: fixed stale media upload caching by forcing unique upload filenames per run.
+- 2026-03-12: Upstream: added Kling 3.0 Motion-Control node and spec docs.
+- 2026-03-07: Upstream: added Grok Imagine T2I, I2I, T2V, I2V nodes and spec docs.
 - 2026-03-04: Added KIE_Seedream_Bytedance_TextToImage node (Seedream 3.0 / bytedance/seedream model with image_size, guidance_scale, seed, enable_safety_checker). Fixed: auth.py now supports KIE_API_KEY env var; seedream45_t2i.py refactored to use shared _create_task; timeout defaults corrected from 300s to 2000s on NanoBanana/Seedream/Flux2 nodes; poll_interval_s and timeout_s exposed in UI for those nodes. Bumped version to 0.3.3.
 - 2026-03-04: Added AGENTS.md (AI agent guidelines), api_summary.md (API parameter audit), and seedream_issue.md (Seedream 3.0 migration plan). Bumped version to 0.3.2.
 - 2026-03-03: Added Sora 2 API nodes (Text-To-Video, Image-To-Video, Characters Pro, Watermark Remover). Bumped version to 0.2.0.

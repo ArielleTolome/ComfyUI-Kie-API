@@ -29,10 +29,6 @@ from .kie_api.seedream45_edit import (
     QUALITY_OPTIONS as SEEDREAM_EDIT_QUALITY_OPTIONS,
     run_seedream45_edit,
 )
-from .kie_api.seedream_bytedance import (
-    IMAGE_SIZE_OPTIONS as SEEDREAM_BYTEDANCE_IMAGE_SIZE_OPTIONS,
-    run_seedream_bytedance_text_to_image,
-)
 from .kie_api.seedancev1pro_fast_i2v import KIE_SeedanceV1Pro_Fast_I2V
 from .kie_api.seedance15pro_i2v import KIE_Seedance15Pro_I2V
 from .kie_api.kling26_i2v import (
@@ -47,6 +43,11 @@ from .kie_api.kling26motion_i2v import (
     CHARACTER_ORIENTATION_OPTIONS as KLING26MOTION_CHARACTER_ORIENTATION_OPTIONS,
     MODE_OPTIONS as KLING26MOTION_MODE_OPTIONS,
     run_kling26motion_i2v_video,
+)
+from .kie_api.kling3motion_i2v import (
+    CHARACTER_ORIENTATION_OPTIONS as KLING3MOTION_CHARACTER_ORIENTATION_OPTIONS,
+    MODE_OPTIONS as KLING3MOTION_MODE_OPTIONS,
+    run_kling3motion_i2v_video,
 )
 from .kie_api.kling26_t2v import (
     ASPECT_RATIO_OPTIONS as KLING26_T2V_ASPECT_RATIO_OPTIONS,
@@ -76,19 +77,42 @@ from .kie_api.flux2_i2i import (
     RESOLUTION_OPTIONS as FLUX2_RESOLUTION_OPTIONS,
     run_flux2_i2i,
 )
+from .kie_api.grok_imagine_t2i import (
+    ASPECT_RATIO_OPTIONS as GROK_T2I_ASPECT_RATIO_OPTIONS,
+    run_grok_imagine_t2i,
+)
+from .kie_api.grok_imagine_t2v import (
+    ASPECT_RATIO_OPTIONS as GROK_T2V_ASPECT_RATIO_OPTIONS,
+    DURATION_OPTIONS as GROK_T2V_DURATION_OPTIONS,
+    MODE_OPTIONS as GROK_T2V_MODE_OPTIONS,
+    RESOLUTION_OPTIONS as GROK_T2V_RESOLUTION_OPTIONS,
+    run_grok_imagine_t2v_video,
+)
+from .kie_api.grok_imagine_i2i import run_grok_imagine_i2i
+from .kie_api.grok_imagine_i2v import (
+    DURATION_OPTIONS as GROK_I2V_DURATION_OPTIONS,
+    MODE_OPTIONS as GROK_I2V_MODE_OPTIONS,
+    RESOLUTION_OPTIONS as GROK_I2V_RESOLUTION_OPTIONS,
+    run_grok_imagine_i2v_video,
+)
+
+from .kie_api.seedream_bytedance import (
+    IMAGE_SIZE_OPTIONS as SEEDREAM_BYTEDANCE_IMAGE_SIZE_OPTIONS,
+    run_seedream_bytedance_text_to_image,
+)
+
+from .kie_api.sora2 import (
+    run_sora2_t2v,
+    run_sora2_t2v_stable,
+    run_sora2_i2v,
+    run_sora2_i2v_stable,
+    run_sora2_characters_pro,
+    run_sora_watermark_remover,
+)
+
 from .kie_api.prompt_lists import parse_prompts_json
 from .kie_api.grid import slice_grid_tensor
 from .kie_api.http import TransientKieError
-
-
-# ── Error Reporting ───────────────────────────────────────────────────────────
-try:
-    from .error_reporter import ErrorReporterMixin
-except ImportError:
-    from error_reporter import ErrorReporterMixin
-
-class _BaseNode(ErrorReporterMixin):
-    pass
 
 
 SYSTEM_PROMPT_MARKER = "system prompt below"
@@ -145,7 +169,7 @@ def _scan_system_prompt_templates() -> dict[str, str]:
     return templates
 
 
-class KIE_GetRemainingCredits(_BaseNode):
+class KIE_GetRemainingCredits:
     HELP = """
 KIE Get Remaining Credits
 
@@ -177,7 +201,7 @@ Notes:
         return (raw_json, credits_remaining)
 
 
-class KIE_NanoBananaPro_Image(_BaseNode):
+class KIE_NanoBananaPro_Image:
     HELP = """
 KIE Nano Banana Pro (Image)
 
@@ -205,8 +229,6 @@ Outputs:
                 "aspect_ratio": ("COMBO", {"options": ASPECT_RATIO_OPTIONS, "default": "auto"}),
                 "resolution": ("COMBO", {"options": RESOLUTION_OPTIONS, "default": "1K"}),
                 "output_format": ("COMBO", {"options": OUTPUT_FORMAT_OPTIONS, "default": "png"}),
-                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -222,9 +244,9 @@ Outputs:
         aspect_ratio: str = "auto",
         resolution: str = "1K",
         output_format: str = "png",
-        poll_interval_s: float = 10.0,
-        timeout_s: int = 2000,
         log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 300,
         retry_on_fail: bool = True,
         max_retries: int = 2,
         retry_backoff_s: float = 3.0,
@@ -246,7 +268,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_NanoBanana2_Image(_BaseNode):
+class KIE_NanoBanana2_Image:
     HELP = """
 KIE Nano Banana 2 (Image)
 
@@ -278,8 +300,6 @@ Outputs:
                 "aspect_ratio": ("COMBO", {"options": NANOBANANA2_ASPECT_RATIO_OPTIONS, "default": "auto"}),
                 "resolution": ("COMBO", {"options": NANOBANANA2_RESOLUTION_OPTIONS, "default": "1K"}),
                 "output_format": ("COMBO", {"options": NANOBANANA2_OUTPUT_FORMAT_OPTIONS, "default": "jpg"}),
-                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -296,9 +316,9 @@ Outputs:
         aspect_ratio: str = "auto",
         resolution: str = "1K",
         output_format: str = "jpg",
-        poll_interval_s: float = 10.0,
-        timeout_s: int = 2000,
         log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 300,
         retry_on_fail: bool = True,
         max_retries: int = 2,
         retry_backoff_s: float = 3.0,
@@ -321,7 +341,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Seedream45_TextToImage(_BaseNode):
+class KIE_Seedream45_TextToImage:
     HELP = """
 KIE Seedream 4.5 Text-To-Image
 
@@ -345,8 +365,6 @@ Outputs:
             "optional": {
                 "aspect_ratio": ("COMBO", {"options": SEEDREAM_ASPECT_RATIO_OPTIONS, "default": "1:1"}),
                 "quality": ("COMBO", {"options": SEEDREAM_QUALITY_OPTIONS, "default": "basic"}),
-                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -361,9 +379,9 @@ Outputs:
         prompt: str,
         aspect_ratio: str = "1:1",
         quality: str = "basic",
-        poll_interval_s: float = 10.0,
-        timeout_s: int = 2000,
         log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 300,
     ):
         image_tensor = run_seedream45_text_to_image(
             prompt=prompt,
@@ -376,7 +394,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Seedream45_Edit(_BaseNode):
+class KIE_Seedream45_Edit:
     HELP = """
 KIE Seedream 4.5 Edit
 
@@ -402,8 +420,6 @@ Outputs:
             "optional": {
                 "aspect_ratio": ("COMBO", {"options": SEEDREAM_EDIT_ASPECT_RATIO_OPTIONS, "default": "1:1"}),
                 "quality": ("COMBO", {"options": SEEDREAM_EDIT_QUALITY_OPTIONS, "default": "basic"}),
-                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -419,9 +435,9 @@ Outputs:
         images: torch.Tensor,
         aspect_ratio: str = "1:1",
         quality: str = "basic",
-        poll_interval_s: float = 10.0,
-        timeout_s: int = 2000,
         log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 300,
     ):
         image_tensor = run_seedream45_edit(
             prompt=prompt,
@@ -435,76 +451,139 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Seedream_Bytedance_TextToImage(_BaseNode):
+class KIE_GrokImagine_T2I:
     HELP = """
-KIE Seedream 3.0 (bytedance/seedream) Text-To-Image
+KIE Grok Imagine (Text-to-Image)
 
-Generate an image using the Seedream 3.0 model (bytedance/seedream).
-
-This is a newer model tier than Seedream 4.5 with different parameters:
-use image_size (enum) instead of aspect_ratio, and tune output with
-guidance_scale and seed for reproducibility.
+Generate one or more images from a text prompt using Grok Imagine.
 
 Inputs:
-- prompt: Text prompt (required, max 3000 chars)
-- image_size: Output dimensions (square / square_hd / portrait_4_3 /
-              portrait_16_9 / landscape_4_3 / landscape_16_9)
-- guidance_scale: Prompt adherence strength, 1.0-10.0 (default 7.5)
-- seed: Random seed for reproducibility; -1 = random each run
-- enable_safety_checker: Run safety filter on output (default: on)
+- prompt: Text prompt (required, up to 5000 chars)
+- aspect_ratio: 2:3, 3:2, 1:1, 9:16, or 16:9
 - poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
 
 Outputs:
-- IMAGE: ComfyUI image tensor (BHWC float32 0-1)
+- IMAGE: ComfyUI image batch (BHWC float32 0-1)
+- STRING: task_id for Grok image-reference chaining
 """
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"multiline": True}),
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
             },
             "optional": {
-                "image_size": ("COMBO", {"options": SEEDREAM_BYTEDANCE_IMAGE_SIZE_OPTIONS, "default": "square_hd"}),
-                "guidance_scale": ("FLOAT", {"default": 7.5, "min": 1.0, "max": 10.0, "step": 0.1}),
-                "seed": ("INT", {"default": -1, "min": -1, "max": 2147483647}),
-                "enable_safety_checker": ("BOOLEAN", {"default": True}),
-                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
+                "aspect_ratio": ("COMBO", {"options": GROK_T2I_ASPECT_RATIO_OPTIONS, "default": "1:1"}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
 
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("image", "task_id")
     FUNCTION = "generate"
     CATEGORY = "kie/api"
 
     def generate(
         self,
         prompt: str,
-        image_size: str = "square_hd",
-        guidance_scale: float = 7.5,
-        seed: int = -1,
-        enable_safety_checker: bool = True,
-        poll_interval_s: float = 10.0,
-        timeout_s: int = 2000,
+        aspect_ratio: str = "1:1",
         log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 300,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
     ):
-        image_tensor = run_seedream_bytedance_text_to_image(
-            prompt=prompt,
-            image_size=image_size,
-            guidance_scale=guidance_scale,
-            seed=seed,
-            enable_safety_checker=enable_safety_checker,
-            poll_interval_s=poll_interval_s,
-            timeout_s=timeout_s,
-            log=log,
-        )
-        return (image_tensor,)
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                image_output, task_id = run_grok_imagine_t2i(
+                    prompt=prompt,
+                    aspect_ratio=aspect_ratio,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (image_output, task_id)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
 
 
-class KIE_Kling25_I2V_Pro(_BaseNode):
+class KIE_GrokImagine_I2I:
+    HELP = """
+KIE Grok Imagine (Image-to-Image)
+
+Generate one or more images from a source image using Grok Imagine.
+
+Inputs:
+- images: Source image batch (first image used)
+- prompt: Optional prompt (up to 390000 chars)
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
+
+Outputs:
+- IMAGE: ComfyUI image batch (BHWC float32 0-1)
+- STRING: task_id for Grok image-reference chaining
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "images": ("IMAGE",),
+            },
+            "optional": {
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("image", "task_id")
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        images: torch.Tensor,
+        prompt: str = "",
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 300,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                image_output, task_id = run_grok_imagine_i2i(
+                    images=images,
+                    prompt=prompt,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (image_output, task_id)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
+
+
+class KIE_Kling25_I2V_Pro:
     HELP = """
 KIE Kling 2.5 I2V Pro
 
@@ -584,7 +663,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Kling26_I2V(_BaseNode):
+class KIE_Kling26_I2V:
     HELP = """
 KIE Kling 2.6 (Video)
 
@@ -657,7 +736,7 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Kling26_T2V(_BaseNode):
+class KIE_Kling26_T2V:
     HELP = """
 KIE Kling 2.6 (Text-to-Video)
 
@@ -730,7 +809,174 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_Kling26Motion_I2V(_BaseNode):
+class KIE_GrokImagine_T2V:
+    HELP = """
+KIE Grok Imagine (Text-to-Video)
+
+Generate a short video clip from a text prompt using Grok Imagine.
+
+Inputs:
+- prompt: Text prompt (required, up to 5000 chars)
+- aspect_ratio: 2:3, 3:2, 1:1, 9:16, or 16:9
+- mode: fun, normal, or spicy
+- duration: 6s, 10s, or 15s
+- resolution: 480p or 720p
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "aspect_ratio": ("COMBO", {"options": GROK_T2V_ASPECT_RATIO_OPTIONS, "default": "16:9"}),
+                "mode": ("COMBO", {"options": GROK_T2V_MODE_OPTIONS, "default": "normal"}),
+                "duration": ("COMBO", {"options": GROK_T2V_DURATION_OPTIONS, "default": "6"}),
+                "resolution": ("COMBO", {"options": GROK_T2V_RESOLUTION_OPTIONS, "default": "480p"}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str,
+        aspect_ratio: str = "16:9",
+        mode: str = "normal",
+        duration: str = "6",
+        resolution: str = "480p",
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_grok_imagine_t2v_video(
+                    prompt=prompt,
+                    aspect_ratio=aspect_ratio,
+                    mode=mode,
+                    duration=duration,
+                    resolution=resolution,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
+
+
+class KIE_GrokImagine_I2V:
+    HELP = """
+KIE Grok Imagine (Image-to-Video)
+
+Generate a short video clip from either one external image or a Grok-generated image reference.
+
+Inputs:
+- prompt: Optional text prompt (up to 5000 chars)
+- images: Optional external source image batch (first image used)
+- task_id: Optional Grok image-generation task id source
+- index: Which Grok-generated image to use (0-5) when task_id is set
+- mode: fun, normal, or spicy
+- duration: 6s, 10s, or 15s
+- resolution: 480p or 720p
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
+
+Rules:
+- Provide exactly one source method: images or task_id
+- External image mode supports only one source image
+- Spicy mode is only supported with task_id sources
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "images": ("IMAGE",),
+                "task_id": ("STRING", {"default": ""}),
+                "index": ("INT", {"default": 0, "min": 0, "max": 5, "step": 1}),
+                "mode": ("COMBO", {"options": GROK_I2V_MODE_OPTIONS, "default": "normal"}),
+                "duration": ("COMBO", {"options": GROK_I2V_DURATION_OPTIONS, "default": "6"}),
+                "resolution": ("COMBO", {"options": GROK_I2V_RESOLUTION_OPTIONS, "default": "480p"}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str = "",
+        images: torch.Tensor | None = None,
+        task_id: str = "",
+        index: int = 0,
+        mode: str = "normal",
+        duration: str = "6",
+        resolution: str = "480p",
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_grok_imagine_i2v_video(
+                    images=images,
+                    task_id_ref=task_id,
+                    index=index,
+                    prompt=prompt,
+                    mode=mode,
+                    duration=duration,
+                    resolution=resolution,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
+
+
+class KIE_Kling26Motion_I2V:
     HELP = """
 KIE Kling 2.6 Motion-Control (I2V)
 
@@ -810,7 +1056,87 @@ Outputs:
                 time.sleep(backoff)
 
 
-class KIE_KlingElements(_BaseNode):
+class KIE_Kling3Motion_I2V:
+    HELP = """
+KIE Kling 3.0 Motion-Control (I2V)
+
+Generate a short video clip from a reference image and a motion reference video.
+
+Inputs:
+- prompt: Optional text prompt (up to 2500 chars)
+- images: Source image batch (first image used)
+- video: Motion reference video input (single clip)
+- character_orientation: Match character orientation to image or video
+- mode: 720p or 1080p output resolution
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+                "images": ("IMAGE",),
+                "video": ("VIDEO",),
+            },
+            "optional": {
+                "character_orientation": (
+                    "COMBO",
+                    {"options": KLING3MOTION_CHARACTER_ORIENTATION_OPTIONS, "default": "video"},
+                ),
+                "mode": ("COMBO", {"options": KLING3MOTION_MODE_OPTIONS, "default": "720p"}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str = "",
+        images: torch.Tensor | None = None,
+        video: object = None,
+        character_orientation: str = "video",
+        mode: str = "720p",
+        log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_kling3motion_i2v_video(
+                    prompt=prompt,
+                    images=images,
+                    video=video,
+                    character_orientation=character_orientation,
+                    mode=mode,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
+
+
+class KIE_KlingElements:
     HELP = """
 KIE Kling Elements
 
@@ -869,7 +1195,7 @@ Outputs:
         return (element_payload, json.dumps(element_payload, indent=2, ensure_ascii=False))
 
 
-class KIE_KlingElementsBatch(_BaseNode):
+class KIE_KlingElementsBatch:
     HELP = """
 KIE Kling Elements Batch
 
@@ -932,7 +1258,7 @@ Outputs:
         return (elements, json.dumps(elements, indent=2, ensure_ascii=False))
 
 
-class KIE_Kling3_Video(_BaseNode):
+class KIE_Kling3_Video:
     HELP = """
 KIE Kling 3.0 (Video)
 
@@ -1058,7 +1384,7 @@ Outputs:
         return (video_output,)
 
 
-class KIE_Kling3_Preflight(_BaseNode):
+class KIE_Kling3_Preflight:
     HELP = """
 KIE Kling 3.0 Preflight
 
@@ -1183,7 +1509,7 @@ Outputs:
         return (payload, json.dumps(payload, indent=2, ensure_ascii=False), notes)
 
 
-class KIE_Flux2_I2I(_BaseNode):
+class KIE_Flux2_I2I:
     HELP = """
 KIE Flux 2 (Image-to-Image)
 
@@ -1195,7 +1521,7 @@ Inputs:
 - model: flux-2/pro-image-to-image or flux-2/flex-image-to-image
 - aspect_ratio: Output aspect ratio (enum)
 - resolution: 1K or 2K
-- poll_interval_s / timeout_s / log
+- log: Console logging on/off
 
 Outputs:
 - IMAGE: ComfyUI image tensor (BHWC float32 0–1)
@@ -1212,8 +1538,6 @@ Outputs:
                 "resolution": ("COMBO", {"options": FLUX2_RESOLUTION_OPTIONS, "default": "1K"}),
             },
             "optional": {
-                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "log": ("BOOLEAN", {"default": True}),
             },
         }
@@ -1230,9 +1554,9 @@ Outputs:
         model: str = "flux-2/pro-image-to-image",
         aspect_ratio: str = "1:1",
         resolution: str = "1K",
-        poll_interval_s: float = 10.0,
-        timeout_s: int = 2000,
         log: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 300,
     ):
         image_tensor = run_flux2_i2i(
             model=model,
@@ -1247,7 +1571,7 @@ Outputs:
         return (image_tensor,)
 
 
-class KIE_Gemini3Pro_LLM(_BaseNode):
+class KIE_Gemini3Pro_LLM:
     HELP = """
 KIE Gemini (LLM) [Experimental]
 
@@ -1335,7 +1659,7 @@ Outputs:
         return (content, reasoning, raw_json)
 
 
-class KIE_Suno_Music_Basic(_BaseNode):
+class KIE_Suno_Music_Basic:
     HELP = """
 KIE Suno Music (Basic)
 
@@ -1412,7 +1736,7 @@ Outputs:
         return (audio_output_1, audio_output_2, raw_json, image_output_1, image_output_2)
 
 
-class KIE_Suno_Music_Advanced(_BaseNode):
+class KIE_Suno_Music_Advanced:
     HELP = """
 KIE Suno Music (Advanced)
 
@@ -1499,7 +1823,7 @@ Outputs:
         return (audio_output_1, audio_output_2, raw_json, image_output_1, image_output_2)
 
 
-class KIE_GridSlice(_BaseNode):
+class KIE_GridSlice:
     HELP = """
 KIE Grid Slice
 
@@ -1561,7 +1885,7 @@ Outputs:
         return (tile_batch,)
 
 
-class KIEParsePromptGridJSON(_BaseNode):
+class KIEParsePromptGridJSON:
     HELP = """
 KIE Parse Prompt Grid JSON (1..9)
 
@@ -1673,7 +1997,7 @@ Outputs:
         return (*padded, count, prompts, prompts)
 
 
-class KIE_SystemPrompt_Selector(_BaseNode):
+class KIE_SystemPrompt_Selector:
     HELP = """
 KIE System Prompt Selector
 
@@ -1734,37 +2058,28 @@ Outputs:
         return (combined,)
 
 
-# Sora 2 API
-from .kie_api.sora2 import (
-    run_sora2_t2v,
-    run_sora2_t2v_stable,
-    run_sora2_i2v,
-    run_sora2_i2v_stable,
-    run_sora2_characters_pro,
-    run_sora_watermark_remover,
-)
 
-SORA2_ASPECT_RATIO_OPTIONS = ["portrait", "landscape"]
-SORA2_N_FRAMES_OPTIONS = ["10", "15"]
-SORA2_UPLOAD_METHOD_OPTIONS = ["s3", "oss"]
-
-class KIE_Sora2_TextToVideo(_BaseNode):
+class KIE_Seedream_Bytedance_TextToImage(_BaseNode):
     HELP = """
-KIE Sora 2 (Text to Video)
+KIE Seedream 3.0 (bytedance/seedream) Text-To-Image
 
-Generate a short video clip from a prompt using Sora 2.
+Generate an image using the Seedream 3.0 model (bytedance/seedream).
+
+This is a newer model tier than Seedream 4.5 with different parameters:
+use image_size (enum) instead of aspect_ratio, and tune output with
+guidance_scale and seed for reproducibility.
 
 Inputs:
-- prompt: Text prompt (required)
-- aspect_ratio: portrait or landscape
-- n_frames: 10 or 15
-- remove_watermark: Remove watermark from generated video
-- upload_method: s3 or oss
+- prompt: Text prompt (required, max 3000 chars)
+- image_size: Output dimensions (square / square_hd / portrait_4_3 /
+              portrait_16_9 / landscape_4_3 / landscape_16_9)
+- guidance_scale: Prompt adherence strength, 1.0-10.0 (default 7.5)
+- seed: Random seed for reproducibility; -1 = random each run
+- enable_safety_checker: Run safety filter on output (default: on)
 - poll_interval_s / timeout_s / log
-- retry_on_fail / max_retries / retry_backoff_s
 
 Outputs:
-- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+- IMAGE: ComfyUI image tensor (BHWC float32 0-1)
 """
 
     @classmethod
@@ -1772,12 +2087,78 @@ Outputs:
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True}),
-                "aspect_ratio": ("COMBO", {"options": SORA2_ASPECT_RATIO_OPTIONS, "default": "portrait"}),
-                "n_frames": ("COMBO", {"options": SORA2_N_FRAMES_OPTIONS, "default": "10"}),
-                "remove_watermark": ("BOOLEAN", {"default": False}),
-                "upload_method": ("COMBO", {"options": SORA2_UPLOAD_METHOD_OPTIONS, "default": "s3"}),
             },
             "optional": {
+                "image_size": ("COMBO", {"options": SEEDREAM_BYTEDANCE_IMAGE_SIZE_OPTIONS, "default": "square_hd"}),
+                "guidance_scale": ("FLOAT", {"default": 7.5, "min": 1.0, "max": 10.0, "step": 0.1}),
+                "seed": ("INT", {"default": -1, "min": -1, "max": 2147483647}),
+                "enable_safety_checker": ("BOOLEAN", {"default": True}),
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str,
+        image_size: str = "square_hd",
+        guidance_scale: float = 7.5,
+        seed: int = -1,
+        enable_safety_checker: bool = True,
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        log: bool = True,
+    ):
+        image_tensor = run_seedream_bytedance_text_to_image(
+            prompt=prompt,
+            image_size=image_size,
+            guidance_scale=guidance_scale,
+            seed=seed,
+            enable_safety_checker=enable_safety_checker,
+            poll_interval_s=poll_interval_s,
+            timeout_s=timeout_s,
+            log=log,
+        )
+        return (image_tensor,)
+
+
+
+class KIE_Sora2_CharactersPro(_BaseNode):
+    HELP = """
+KIE Sora 2 (Characters Pro)
+
+Extracts a reusable character from an existing Sora 2 video and registers it as a named @handle.
+
+Inputs:
+- origin_task_id: taskId of a previously generated Sora 2 video (required)
+- start_time: Clip start in seconds (required)
+- end_time: Clip end in seconds. Selected segment must be 1-4 seconds long. (required)
+- character_user_name: Globally unique handle for your character. (optional)
+- character_prompt: Short line describing stable traits. (required)
+- safety_instruction: Content boundaries. (optional)
+
+Outputs:
+- character_handle: The @username for use in downstream prompts
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "origin_task_id": ("STRING", {}),
+                "start_time": ("FLOAT", {"default": 0.0, "min": 0.0, "step": 0.1}),
+                "end_time": ("FLOAT", {"default": 4.0, "min": 1.0, "step": 0.1}),
+                "character_prompt": ("STRING", {"multiline": True}),
+            },
+            "optional": {
+                "character_user_name": ("STRING", {"default": ""}),
+                "safety_instruction": ("STRING", {"multiline": True, "default": ""}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
                 "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
@@ -1787,18 +2168,19 @@ Outputs:
             },
         }
 
-    RETURN_TYPES = ("VIDEO",)
-    RETURN_NAMES = ("video",)
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("character_handle",)
     FUNCTION = "generate"
     CATEGORY = "kie/api"
 
     def generate(
         self,
-        prompt: str,
-        aspect_ratio: str = "portrait",
-        n_frames: str = "10",
-        remove_watermark: bool = False,
-        upload_method: str = "s3",
+        origin_task_id: str,
+        start_time: float,
+        end_time: float,
+        character_prompt: str,
+        character_user_name: str = "",
+        safety_instruction: str = "",
         poll_interval_s: float = 10.0,
         timeout_s: int = 2000,
         retry_on_fail: bool = True,
@@ -1812,100 +2194,24 @@ Outputs:
 
         for attempt in range(1, attempts + 1):
             try:
-                video_output = run_sora2_t2v(
-                    prompt=prompt,
-                    aspect_ratio=aspect_ratio,
-                    n_frames=n_frames,
-                    remove_watermark=remove_watermark,
-                    upload_method=upload_method,
+                handle = run_sora2_characters_pro(
+                    origin_task_id=origin_task_id,
+                    start_time_s=start_time,
+                    end_time_s=end_time,
+                    character_prompt=character_prompt,
+                    character_user_name=character_user_name if character_user_name else None,
+                    safety_instruction=safety_instruction if safety_instruction else None,
                     poll_interval_s=poll_interval_s,
                     timeout_s=timeout_s,
                     log=log,
                 )
-                return (video_output,)
+                return (handle,)
             except TransientKieError:
                 if not retry_on_fail or attempt >= attempts:
                     raise
                 _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
                 time.sleep(backoff)
 
-
-class KIE_Sora2_TextToVideoStable(_BaseNode):
-    HELP = """
-KIE Sora 2 (Text to Video Stable)
-
-Generate a short video clip from a prompt using Sora 2 (stable endpoint).
-
-Inputs:
-- prompt: Text prompt (required)
-- aspect_ratio: portrait or landscape
-- n_frames: 10 or 15
-- upload_method: s3 or oss
-- poll_interval_s / timeout_s / log
-- retry_on_fail / max_retries / retry_backoff_s
-
-Outputs:
-- VIDEO: ComfyUI video output referencing a temporary .mp4 file
-"""
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {"multiline": True}),
-                "aspect_ratio": ("COMBO", {"options": SORA2_ASPECT_RATIO_OPTIONS, "default": "portrait"}),
-                "n_frames": ("COMBO", {"options": SORA2_N_FRAMES_OPTIONS, "default": "10"}),
-                "upload_method": ("COMBO", {"options": SORA2_UPLOAD_METHOD_OPTIONS, "default": "s3"}),
-            },
-            "optional": {
-                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
-                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
-                "retry_on_fail": ("BOOLEAN", {"default": True}),
-                "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
-                "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
-                "log": ("BOOLEAN", {"default": True}),
-            },
-        }
-
-    RETURN_TYPES = ("VIDEO",)
-    RETURN_NAMES = ("video",)
-    FUNCTION = "generate"
-    CATEGORY = "kie/api"
-
-    def generate(
-        self,
-        prompt: str,
-        aspect_ratio: str = "portrait",
-        n_frames: str = "10",
-        upload_method: str = "s3",
-        poll_interval_s: float = 10.0,
-        timeout_s: int = 2000,
-        retry_on_fail: bool = True,
-        max_retries: int = 2,
-        retry_backoff_s: float = 3.0,
-        log: bool = True,
-    ):
-        attempts = max_retries + 1 if retry_on_fail else 1
-        attempts = max(attempts, 1)
-        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
-
-        for attempt in range(1, attempts + 1):
-            try:
-                video_output = run_sora2_t2v_stable(
-                    prompt=prompt,
-                    aspect_ratio=aspect_ratio,
-                    n_frames=n_frames,
-                    upload_method=upload_method,
-                    poll_interval_s=poll_interval_s,
-                    timeout_s=timeout_s,
-                    log=log,
-                )
-                return (video_output,)
-            except TransientKieError:
-                if not retry_on_fail or attempt >= attempts:
-                    raise
-                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
-                time.sleep(backoff)
 
 class KIE_Sora2_ImageToVideo(_BaseNode):
     HELP = """
@@ -1993,6 +2299,7 @@ Outputs:
                 time.sleep(backoff)
 
 
+
 class KIE_Sora2_ImageToVideoStable(_BaseNode):
     HELP = """
 KIE Sora 2 (Image to Video Stable)
@@ -2074,36 +2381,37 @@ Outputs:
                 _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
                 time.sleep(backoff)
 
-class KIE_Sora2_CharactersPro(_BaseNode):
-    HELP = """
-KIE Sora 2 (Characters Pro)
 
-Extracts a reusable character from an existing Sora 2 video and registers it as a named @handle.
+class KIE_Sora2_TextToVideo(_BaseNode):
+    HELP = """
+KIE Sora 2 (Text to Video)
+
+Generate a short video clip from a prompt using Sora 2.
 
 Inputs:
-- origin_task_id: taskId of a previously generated Sora 2 video (required)
-- start_time: Clip start in seconds (required)
-- end_time: Clip end in seconds. Selected segment must be 1-4 seconds long. (required)
-- character_user_name: Globally unique handle for your character. (optional)
-- character_prompt: Short line describing stable traits. (required)
-- safety_instruction: Content boundaries. (optional)
+- prompt: Text prompt (required)
+- aspect_ratio: portrait or landscape
+- n_frames: 10 or 15
+- remove_watermark: Remove watermark from generated video
+- upload_method: s3 or oss
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
 
 Outputs:
-- character_handle: The @username for use in downstream prompts
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
 """
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "origin_task_id": ("STRING", {}),
-                "start_time": ("FLOAT", {"default": 0.0, "min": 0.0, "step": 0.1}),
-                "end_time": ("FLOAT", {"default": 4.0, "min": 1.0, "step": 0.1}),
-                "character_prompt": ("STRING", {"multiline": True}),
+                "prompt": ("STRING", {"multiline": True}),
+                "aspect_ratio": ("COMBO", {"options": SORA2_ASPECT_RATIO_OPTIONS, "default": "portrait"}),
+                "n_frames": ("COMBO", {"options": SORA2_N_FRAMES_OPTIONS, "default": "10"}),
+                "remove_watermark": ("BOOLEAN", {"default": False}),
+                "upload_method": ("COMBO", {"options": SORA2_UPLOAD_METHOD_OPTIONS, "default": "s3"}),
             },
             "optional": {
-                "character_user_name": ("STRING", {"default": ""}),
-                "safety_instruction": ("STRING", {"multiline": True, "default": ""}),
                 "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
                 "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
                 "retry_on_fail": ("BOOLEAN", {"default": True}),
@@ -2113,19 +2421,18 @@ Outputs:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("character_handle",)
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
     FUNCTION = "generate"
     CATEGORY = "kie/api"
 
     def generate(
         self,
-        origin_task_id: str,
-        start_time: float,
-        end_time: float,
-        character_prompt: str,
-        character_user_name: str = "",
-        safety_instruction: str = "",
+        prompt: str,
+        aspect_ratio: str = "portrait",
+        n_frames: str = "10",
+        remove_watermark: bool = False,
+        upload_method: str = "s3",
         poll_interval_s: float = 10.0,
         timeout_s: int = 2000,
         retry_on_fail: bool = True,
@@ -2139,23 +2446,102 @@ Outputs:
 
         for attempt in range(1, attempts + 1):
             try:
-                handle = run_sora2_characters_pro(
-                    origin_task_id=origin_task_id,
-                    start_time_s=start_time,
-                    end_time_s=end_time,
-                    character_prompt=character_prompt,
-                    character_user_name=character_user_name if character_user_name else None,
-                    safety_instruction=safety_instruction if safety_instruction else None,
+                video_output = run_sora2_t2v(
+                    prompt=prompt,
+                    aspect_ratio=aspect_ratio,
+                    n_frames=n_frames,
+                    remove_watermark=remove_watermark,
+                    upload_method=upload_method,
                     poll_interval_s=poll_interval_s,
                     timeout_s=timeout_s,
                     log=log,
                 )
-                return (handle,)
+                return (video_output,)
             except TransientKieError:
                 if not retry_on_fail or attempt >= attempts:
                     raise
                 _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
                 time.sleep(backoff)
+
+
+
+class KIE_Sora2_TextToVideoStable(_BaseNode):
+    HELP = """
+KIE Sora 2 (Text to Video Stable)
+
+Generate a short video clip from a prompt using Sora 2 (stable endpoint).
+
+Inputs:
+- prompt: Text prompt (required)
+- aspect_ratio: portrait or landscape
+- n_frames: 10 or 15
+- upload_method: s3 or oss
+- poll_interval_s / timeout_s / log
+- retry_on_fail / max_retries / retry_backoff_s
+
+Outputs:
+- VIDEO: ComfyUI video output referencing a temporary .mp4 file
+"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True}),
+                "aspect_ratio": ("COMBO", {"options": SORA2_ASPECT_RATIO_OPTIONS, "default": "portrait"}),
+                "n_frames": ("COMBO", {"options": SORA2_N_FRAMES_OPTIONS, "default": "10"}),
+                "upload_method": ("COMBO", {"options": SORA2_UPLOAD_METHOD_OPTIONS, "default": "s3"}),
+            },
+            "optional": {
+                "poll_interval_s": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 60.0, "step": 1.0}),
+                "timeout_s": ("INT", {"default": 2000, "min": 2000, "max": 10000, "step": 10}),
+                "retry_on_fail": ("BOOLEAN", {"default": True}),
+                "max_retries": ("INT", {"default": 2, "min": 0, "max": 10, "step": 1}),
+                "retry_backoff_s": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 60.0, "step": 1.0}),
+                "log": ("BOOLEAN", {"default": True}),
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    FUNCTION = "generate"
+    CATEGORY = "kie/api"
+
+    def generate(
+        self,
+        prompt: str,
+        aspect_ratio: str = "portrait",
+        n_frames: str = "10",
+        upload_method: str = "s3",
+        poll_interval_s: float = 10.0,
+        timeout_s: int = 2000,
+        retry_on_fail: bool = True,
+        max_retries: int = 2,
+        retry_backoff_s: float = 3.0,
+        log: bool = True,
+    ):
+        attempts = max_retries + 1 if retry_on_fail else 1
+        attempts = max(attempts, 1)
+        backoff = retry_backoff_s if retry_backoff_s >= 0 else 0.0
+
+        for attempt in range(1, attempts + 1):
+            try:
+                video_output = run_sora2_t2v_stable(
+                    prompt=prompt,
+                    aspect_ratio=aspect_ratio,
+                    n_frames=n_frames,
+                    upload_method=upload_method,
+                    poll_interval_s=poll_interval_s,
+                    timeout_s=timeout_s,
+                    log=log,
+                )
+                return (video_output,)
+            except TransientKieError:
+                if not retry_on_fail or attempt >= attempts:
+                    raise
+                _log(log, f"Retrying (attempt {attempt + 1}/{attempts}) after {backoff}s")
+                time.sleep(backoff)
+
 
 class KIE_Sora2_WatermarkRemover(_BaseNode):
     HELP = """
@@ -2257,6 +2643,11 @@ NODE_CLASS_MAPPINGS = {
     "KIE_Sora2_ImageToVideoStable": KIE_Sora2_ImageToVideoStable,
     "KIE_Sora2_CharactersPro": KIE_Sora2_CharactersPro,
     "KIE_Sora2_WatermarkRemover": KIE_Sora2_WatermarkRemover,
+    "KIE_GrokImagine_I2I": KIE_GrokImagine_I2I,
+    "KIE_GrokImagine_I2V": KIE_GrokImagine_I2V,
+    "KIE_GrokImagine_T2I": KIE_GrokImagine_T2I,
+    "KIE_GrokImagine_T2V": KIE_GrokImagine_T2V,
+    "KIE_Kling3Motion_I2V": KIE_Kling3Motion_I2V,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "KIE_GetRemainingCredits": "KIE Get Remaining Credits",
@@ -2288,4 +2679,69 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KIE_Sora2_ImageToVideoStable": "KIE Sora 2 Image-To-Video Stable",
     "KIE_Sora2_CharactersPro": "KIE Sora 2 Characters Pro",
     "KIE_Sora2_WatermarkRemover": "KIE Sora 2 Watermark Remover",
+    "KIE_GrokImagine_I2I": "KIE Grok Imagine (I2I)",
+    "KIE_GrokImagine_I2V": "KIE Grok Imagine (I2V)",
+    "KIE_GrokImagine_T2I": "KIE Grok Imagine (T2I)",
+    "KIE_GrokImagine_T2V": "KIE Grok Imagine (T2V)",
+    "KIE_Kling3Motion_I2V": "KIE Kling 3.0 Motion-Control (I2V)",
+}
+
+
+NODE_CLASS_MAPPINGS = {
+    "KIE_GetRemainingCredits": KIE_GetRemainingCredits,
+    "KIE_NanoBananaPro_Image": KIE_NanoBananaPro_Image,
+    "KIE_NanoBanana2_Image": KIE_NanoBanana2_Image,
+    "KIE_Seedream45_TextToImage": KIE_Seedream45_TextToImage,
+    "KIE_Seedream45_Edit": KIE_Seedream45_Edit,
+    "KIE_GrokImagine_T2I": KIE_GrokImagine_T2I,
+    "KIE_GrokImagine_I2I": KIE_GrokImagine_I2I,
+    "KIE_SeedanceV1Pro_Fast_I2V": KIE_SeedanceV1Pro_Fast_I2V,
+    "KIE_Seedance15Pro_I2V": KIE_Seedance15Pro_I2V,
+    "KIE_Kling25_I2V_Pro": KIE_Kling25_I2V_Pro,
+    "KIE_Kling26_I2V": KIE_Kling26_I2V,
+    "KIE_Kling26_T2V": KIE_Kling26_T2V,
+    "KIE_Kling26Motion_I2V": KIE_Kling26Motion_I2V,
+    "KIE_Kling3Motion_I2V": KIE_Kling3Motion_I2V,
+    "KIE_KlingElements": KIE_KlingElements,
+    "KIE_KlingElementsBatch": KIE_KlingElementsBatch,
+    "KIE_Kling3_Video": KIE_Kling3_Video,
+    "KIE_Kling3_Preflight": KIE_Kling3_Preflight,
+    "KIE_Flux2_I2I": KIE_Flux2_I2I,
+    "KIE_GrokImagine_T2V": KIE_GrokImagine_T2V,
+    "KIE_GrokImagine_I2V": KIE_GrokImagine_I2V,
+    "KIE_Gemini3Pro_LLM": KIE_Gemini3Pro_LLM,
+    "KIE_Suno_Music_Basic": KIE_Suno_Music_Basic,
+    "KIE_Suno_Music_Advanced": KIE_Suno_Music_Advanced,
+    "KIE_GridSlice": KIE_GridSlice,
+    "KIEParsePromptGridJSON": KIEParsePromptGridJSON,
+    "KIE_SystemPrompt_Selector": KIE_SystemPrompt_Selector,
+}
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "KIE_GetRemainingCredits": "KIE Get Remaining Credits",
+    "KIE_NanoBananaPro_Image": "KIE Nano Banana Pro (Image)",
+    "KIE_NanoBanana2_Image": "Nano Banana 2",
+    "KIE_Seedream45_TextToImage": "KIE Seedream 4.5 Text-To-Image",
+    "KIE_Seedream45_Edit": "KIE Seedream 4.5 Edit",
+    "KIE_GrokImagine_T2I": "KIE Grok Imagine (T2I)",
+    "KIE_GrokImagine_I2I": "KIE Grok Imagine (I2I)",
+    "KIE_SeedanceV1Pro_Fast_I2V": "KIE Seedance V1 Pro Fast (I2V)",
+    "KIE_Seedance15Pro_I2V": "KIE Seedance 1.5 Pro (I2V/T2V)",
+    "KIE_Kling25_I2V_Pro": "KIE Kling 2.5 I2V Pro",
+    "KIE_Kling26_I2V": "KIE Kling 2.6 (I2V)",
+    "KIE_Kling26_T2V": "KIE Kling 2.6 (T2V)",
+    "KIE_Kling26Motion_I2V": "KIE Kling 2.6 Motion-Control (I2V)",
+    "KIE_Kling3Motion_I2V": "KIE Kling 3.0 Motion-Control (I2V)",
+    "KIE_KlingElements": "KIE Kling Elements",
+    "KIE_KlingElementsBatch": "KIE Kling Elements Batch",
+    "KIE_Kling3_Video": "KIE Kling 3.0 (Video)",
+    "KIE_Kling3_Preflight": "KIE Kling 3.0 Preflight",
+    "KIE_Flux2_I2I": "KIE Flux 2 (Image-to-Image)",
+    "KIE_GrokImagine_T2V": "KIE Grok Imagine (T2V)",
+    "KIE_GrokImagine_I2V": "KIE Grok Imagine (I2V)",
+    "KIE_Gemini3Pro_LLM": "KIE Gemini (LLM) [Experimental]",
+    "KIE_Suno_Music_Basic": "KIE Suno Music (Basic)",
+    "KIE_Suno_Music_Advanced": "KIE Suno Music (Advanced)",
+    "KIE_GridSlice": "KIE Grid Slice",
+    "KIEParsePromptGridJSON": "KIE Parse Prompt Grid JSON (1..9)",
+    "KIE_SystemPrompt_Selector": "KIE System Prompt Selector",
 }
