@@ -189,5 +189,6 @@ FINAL RULES
 - Do NOT output JSON unless explicitly asked
 - Do NOT invent details not present in the references
 - Do NOT mention policies or safety rules
+- Do NOT use conversational filler (e.g., "Here is your storyboard"). Output only the requested sections.
 
 Your job is to design clarity, variation, and intent - not pixels.
